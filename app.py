@@ -38,13 +38,14 @@ if st.button("Predict Match Outcome"):
         
         # Combine the feature values of both teams
         match_features = {**home_features, **away_features}
-        prediction = model.predict(match_features)
+        match_data = pd.DataFrame([match_features])
+        prediction = model.predict(match_data)
         # Interpret and display prediction
-        if prediction == 1:
+        if prediction[0] == 1:
             st.write(f"The model predicts that **{home_team}** will win against **{away_team}**.")
-        elif prediction == 2:
+        elif prediction[0] == 2:
             st.write(f"The model predicts a **draw** between **{home_team}** and **{away_team}**.")
-        elif prediction == 0:
+        elif prediction[0] == 0:
             st.write(f"The model predicts that **{away_team}** will win against **{home_team}**.")
 else:
   st.write("No data available for the selected teams.")
