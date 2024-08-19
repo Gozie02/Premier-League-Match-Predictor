@@ -5,7 +5,7 @@ from team_features import home_team_features, away_team_features
 import sklearn
 print(sklearn.__version__)
 # Load the trained model and the dataset
-model = joblib.load('finalized_model1.pkl')
+model = joblib.load('finalized_model2.pkl')
 all_data = pd.read_csv('final_df_features.csv')
 
 # Extract unique team names from the dataset
