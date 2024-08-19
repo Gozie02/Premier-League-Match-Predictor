@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
+from team_features import home_team_features, away_team_features
 
 # Load the trained model and the dataset
 model = joblib.load('finalized_model.pkl')
@@ -19,7 +20,7 @@ st.sidebar.header("Select Teams")
 home_team = st.sidebar.selectbox("Home Team", all_teams)
 away_team = st.sidebar.selectbox("Away Team", all_teams)
 
-# Function to prepare the input data with one-hot encoding
+# Function to prepare the input data with one-hot encoding and additional features
 def prepare_input_data(home_team, away_team):
     match_features = {}
     
@@ -30,6 +31,13 @@ def prepare_input_data(home_team, away_team):
     # Perform one-hot encoding for the away team
     for team in all_teams:
         match_features[f"away_{team}"] = 1 if away_team == team else 0
+    
+    # Include additional features from home_team_features and away_team_features
+    home_features = home_team_features.get(home_team, {})
+    away_features = away_team_features.get(away_team, {})
+    
+    match_features.update(home_features)
+    match_features.update(away_features)
     
     return pd.DataFrame([match_features])
 
