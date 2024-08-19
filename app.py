@@ -23,6 +23,7 @@ st.sidebar.header("Select Teams")
 home_team = st.sidebar.selectbox("Home Team", all_teams)
 away_team = st.sidebar.selectbox("Away Team", all_teams)
 
+
 # Function to prepare the input data with one-hot encoding and additional features
 def prepare_input_data(home_team, away_team):
     match_features = {}
@@ -42,27 +43,18 @@ def prepare_input_data(home_team, away_team):
     match_features.update(home_features)
     match_features.update(away_features)
     
-    return pd.DataFrame([match_features])
+    # Create a DataFrame and ensure it matches the model's expected features
+    match_data = pd.DataFrame([match_features])
+    
+    # Ensure the input data has the same columns as the model's training data
+    match_data = match_data.reindex(columns=model_feature_names, fill_value=0)
+    
+    return match_data
 
 # Predict Button
 if st.button("Predict Match Outcome"):
     # Prepare the input data using the selected teams
     match_data = prepare_input_data(home_team, away_team)
-    
-    # Remove columns that don't appear in the BaggingClassifier's training data
-    match_data = match_data[match_data.columns.intersection(model_feature_names)]
-    
-    # Remove the extra column(s) if they are still present
-    extra_columns = set(match_data.columns) - set(model_feature_names)
-    if extra_columns:
-        match_data = match_data.drop(columns=list(extra_columns))
-    
-    # Remove missing columns from the model_feature_names list
-    missing_columns = set(model_feature_names) - set(match_data.columns)
-    model_feature_names = [col for col in model_feature_names if col not in missing_columns]
-    
-    # Reorder the columns in match_data to match the order of model_feature_names
-    match_data = match_data[model_feature_names]
     
     # Make the prediction
     prediction = model.predict(match_data)
