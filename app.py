@@ -56,6 +56,35 @@ if st.button("Predict Match Outcome"):
     # Prepare the input data using the selected teams
     match_data = prepare_input_data(home_team, away_team)
     
+    print("Shape of match_data after preparation:", match_data.shape)
+    print("Columns of match_data after preparation:", match_data.columns)
+    
+    # Remove columns that don't appear in the BaggingClassifier's training data
+    match_data = match_data[match_data.columns.intersection(model_feature_names)]
+    
+    print("Shape of match_data after removing extra columns:", match_data.shape)
+    print("Columns of match_data after removing extra columns:", match_data.columns)
+    
+    # Remove the extra column(s) if they are still present
+    extra_columns = set(match_data.columns) - set(model_feature_names)
+    if extra_columns:
+        match_data = match_data.drop(columns=list(extra_columns))
+    
+    print("Shape of match_data after removing extra columns (if any):", match_data.shape)
+    print("Columns of match_data after removing extra columns (if any):", match_data.columns)
+    
+    # Remove missing columns from the model_feature_names list
+    missing_columns = set(model_feature_names) - set(match_data.columns)
+    model_feature_names = [col for col in model_feature_names if col not in missing_columns]
+    
+    print("Number of features in model_feature_names after removing missing columns:", len(model_feature_names))
+    
+    # Reorder the columns in match_data to match the order of model_feature_names
+    match_data = match_data[model_feature_names]
+    
+    print("Shape of match_data after reordering columns:", match_data.shape)
+    print("Columns of match_data after reordering columns:", match_data.columns)
+    
     # Make the prediction
     prediction = model.predict(match_data)
     
