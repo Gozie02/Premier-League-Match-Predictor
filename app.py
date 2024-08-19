@@ -48,11 +48,12 @@ def prepare_input_data(home_team, away_team):
 if st.button("Predict Match Outcome"):
     # Prepare the input data using the selected teams
     match_data = prepare_input_data(home_team, away_team)
-    
     # Remove columns that don't appear in the BaggingClassifier's training data
     match_data = match_data[match_data.columns.intersection(model_feature_names)]
-    
-    # Make the prediction
+    # Remove the extra column(s) if they are still present
+    extra_columns = set(match_data.columns) - set(model_feature_names)
+    if extra_columns:
+        match_data = match_data.drop(columns=list(extra_columns))
     prediction = model.predict(match_data)
     
     # Interpret and display prediction
