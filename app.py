@@ -25,6 +25,7 @@ away_team = st.sidebar.selectbox("Away Team", all_teams)
 
 
 # Function to prepare the input data with one-hot encoding and additional features
+# Function to prepare the input data with one-hot encoding and additional features
 def prepare_input_data(home_team, away_team):
     match_features = {}
     
@@ -43,11 +44,9 @@ def prepare_input_data(home_team, away_team):
     match_features.update(home_features)
     match_features.update(away_features)
     
-    # Create a DataFrame and ensure it matches the model's expected features
-    match_data = pd.DataFrame([match_features])
-    
-    # Ensure the input data has the same columns as the model's training data
-    match_data = match_data.reindex(columns=model_feature_names, fill_value=0)
+    # Create the DataFrame with explicit column names
+    column_names = list(match_features.keys())
+    match_data = pd.DataFrame([match_features], columns=column_names)
     
     return match_data
 
