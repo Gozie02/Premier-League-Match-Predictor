@@ -1,10 +1,15 @@
 import streamlit as st
 import pandas as pd
 import joblib
-from team_features import home_team_features, away_team_features, all_teams
 
-# Load the trained model
+# Load the trained model and the dataset
 model = joblib.load('finalized_model.pkl')
+all_data = pd.read_csv('final_df_features.csv')
+
+# Extract unique team names from the dataset
+home_teams = [col.replace("home_", "") for col in all_data.columns if col.startswith("home_")]
+away_teams = [col.replace("away_", "") for col in all_data.columns if col.startswith("away_")]
+all_teams = sorted(set(home_teams + away_teams))
 
 # Streamlit App
 st.title("Football Match Outcome Predictor")
@@ -25,14 +30,6 @@ def prepare_input_data(home_team, away_team):
     # Perform one-hot encoding for the away team
     for team in all_teams:
         match_features[f"away_{team}"] = 1 if away_team == team else 0
-    
-    # Retrieve the home and away team features based on user input
-    home_features = home_team_features.get(home_team, {})
-    away_features = away_team_features.get(away_team, {})
-    
-    # Combine the one-hot encoded team features and the additional team features
-    match_features.update(home_features)
-    match_features.update(away_features)
     
     return pd.DataFrame([match_features])
 
