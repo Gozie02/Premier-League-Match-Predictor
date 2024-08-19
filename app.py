@@ -45,9 +45,15 @@ def prepare_input_data(home_team, away_team):
 if st.button("Predict Match Outcome"):
     # Prepare the input data using the selected teams
     match_data = prepare_input_data(home_team, away_team)
+
+    st.write("Columns before dropping:")
+    st.write(match_data.columns)
         # Drop the columns that were dropped during model training
     dropped_columns = ['Outcome_encoded_home', 'Outcome_encoded_away', 'GF_Home_away', 'GF_Away_away']
     match_data = match_data.drop(columns=dropped_columns, errors='ignore')
+
+    st.write("Columns after dropping:")
+    st.write(match_data.columns)
     
     # Make the prediction
     prediction = model.predict(match_data)
