@@ -68,15 +68,18 @@ if st.button("Predict Match Outcome"):
     extra_columns = set(match_data.columns) - set(model_feature_names)
     if extra_columns:
         match_data = match_data.drop(columns=list(extra_columns))
-    
-    print("Shape of match_data after removing extra columns (if any):", match_data.shape)
-    print("Columns of match_data after removing extra columns (if any):", match_data.columns)
-    
+
+    st.write("Shape of match_data after removing extra columns (if any):", match_data.shape)
+    st.write("Columns of match_data after removing extra columns (if any):")
+    st.write(match_data.columns)
+
     # Remove missing columns from the model_feature_names list
     missing_columns = set(model_feature_names) - set(match_data.columns)
     model_feature_names = [col for col in model_feature_names if col not in missing_columns]
-    
-    print("Number of features in model_feature_names after removing missing columns:", len(model_feature_names))
+
+    st.write("Number of features in model_feature_names after removing missing columns:", len(model_feature_names))
+    st.write("Columns in model_feature_names:")
+    st.write(model_feature_names)
     
     # Reorder the columns in match_data to match the order of model_feature_names
     match_data = match_data[model_feature_names]
