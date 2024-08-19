@@ -12,8 +12,8 @@ home_teams = [col.replace("home_", "") for col in all_data.columns if col.starts
 away_teams = [col.replace("away_", "") for col in all_data.columns if col.startswith("away_")]
 all_teams = sorted(set(home_teams + away_teams))
 
-# Get the feature names used in the BaggingClassifier's training data
-model_feature_names = model.feature_names_in_
+# Get the list of feature names used during training
+model_feature_names = all_data.columns.tolist()
 
 # Streamlit App
 st.title("Football Match Outcome Predictor")
@@ -50,7 +50,7 @@ if st.button("Predict Match Outcome"):
     match_data = prepare_input_data(home_team, away_team)
     
     # Remove columns that don't appear in the BaggingClassifier's training data
-    match_data = match_data[model_feature_names]
+    match_data = match_data[match_data.columns.intersection(model_feature_names)]
     
     # Make the prediction
     prediction = model.predict(match_data)
