@@ -191,26 +191,31 @@ def standardize_team_name(team_name):
     final_df1 = pd.get_dummies(final_df, columns=['Home_Team_home', 'Away_Team_home'], prefix=['home', 'away'], dtype = 'int')
     final_df_test = final_df1._get_numeric_data()
     final_df_test = final_df_test.loc[:,~final_df_test.columns.duplicated()]
+    final_df_modeling = final_df_test.drop(['Outcome_encoded_away', 'GF_Home_away', 'GF_Away_away'], axis = 1)
     final_df_features = final_df_test.drop(['Outcome_encoded_home', 'Outcome_encoded_away', 'GF_Home_away', 'GF_Away_away'], axis = 1)
   
 
     print(final_df_features.head())
-    csv_file = 'final_df_features.csv'
-    if os.path.isfile(csv_file):
-        # If the file exists, read the existing data
-        existing_data = pd.read_csv(csv_file)
-        
-        # Append the new data to the existing data
-        updated_data = pd.concat([existing_data, final_df_features], ignore_index=True)
-        
-        # Save the updated data to the CSV file
-        updated_data.to_csv(csv_file, index=False)
+
+# Save the preprocessed data with Outcome_encoded to a CSV file
+    csv_file_with_outcome = 'model_training.csv'
+    if os.path.isfile(csv_file_with_outcome):
+        existing_data_with_outcome = pd.read_csv(csv_file_with_outcome)
+        updated_data_with_outcome = pd.concat([existing_data_with_outcome, final_df_modeling], ignore_index=True)
+        updated_data_with_outcome.to_csv(csv_file_with_outcome, index=False)
     else:
-        # If the file doesn't exist, save the new data to the CSV file
-        final_df_features.to_csv(csv_file, index=False)
+        final_df_modeling.to_csv(csv_file_with_outcome, index=False)
+        
+    csv_file_without_outcome = 'final_df_features.csv'
+    if os.path.isfile(csv_file_without_outcome):
+        existing_data_without_outcome = pd.read_csv(csv_file_without_outcome)
+        updated_data_without_outcome = pd.concat([existing_data_without_outcome, final_df_features], ignore_index=True)
+        updated_data_without_outcome.to_csv(csv_file_without_outcome, index=False)
+    else:
+        final_df_features.to_csv(csv_file_without_outcome, index=False)
 
 # Schedule the task to run every Tuesday at 8:00 AM
-schedule.every().tuesday.at("08:00").do(fetch_premier_league_data)
+schedule.every().wednesday.at("08:00").do(fetch_premier_league_data)
 
 while True:
     schedule.run_pending()
