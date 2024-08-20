@@ -5,6 +5,7 @@ import pandas as pd
 import schedule
 import numpy as np
 from ELO_system_runner import run_elo_system
+from Performance_Tracker import show_recent_performance
 
 def fetch_premier_league_data():
     current_year = 2024  # Update this to the current Premier League season
@@ -172,9 +173,41 @@ def standardize_team_name(team_name):
     combined_df.drop(columns=columns_to_drop1, inplace=True)
     combined_df['Round_home'] = combined_df['Round_home'].str.extract('(\d+)').astype(int)
     final_elos, elo_trends = run_elo_system(combined_df)
+    performance_df = show_recent_performance(combined_df)
+    performance_columns_to_drop = ['Home_Team_Avg_Date_home_Last_7', 'Home_Team_Avg_Time_home_Last_7', 'Home_Team_Avg_Round_home_Last_7', 'Home_Team_Avg_Day_home_Last_7',
+                               'Home_Team_Avg_Home_Team_home_Last_7', 'Home_Team_Avg_Away_Team_home_Last_7', 'Home_Team_Avg_Referee_home_Last_7', 'Away_Team_Avg_Date_away_Last_7',
+                               'Away_Team_Avg_Time_away_Last_7', 'Away_Team_Avg_Day_away_Last_7', 'Away_Team_Avg_Home_Team_away_Last_7','Away_Team_Avg_Away_Team_away_Last_7']
+
+    performance_df.drop(columns=performance_columns_to_drop, inplace=True)
+    combined_with_performance = pd.merge(combined_df, performance_df, on='Match_ID', how='left')
+    combined_with_performance_renamed = combined_with_performance.rename(columns={'Date_home': 'Date', 'Round_home': 'Round','Season_home': 'Season'})
+    combined_with_performance_unique = combined_with_performance_renamed.drop_duplicates(subset=['Match_ID'])
+    final_elos_unique = final_elos.drop_duplicates(subset=['Match_ID'])
+    final_df = pd.merge(combined_with_performance_unique, final_elos_unique, on='Match_ID', how='left')
+    final_df = final_df.drop(columns=['Match_ID'])
+    final_columns_to_drop = ['Home_Team_x', 'Away_Team_x', 'Home_Team_y', 'Away_Team_y', 'Date_away', 'Time_away', 'Day_away', 'Referee_away', 'Round_y', 'Season_y', 'Date_y',
+                         'Referee_home']
+    final_df.drop(columns=final_columns_to_drop, inplace=True)
+    final_df1 = pd.get_dummies(final_df, columns=['Home_Team_home', 'Away_Team_home'], prefix=['home', 'away'], dtype = 'int')
+    final_df_test = final_df1._get_numeric_data()
+    final_df_test = final_df_test.loc[:,~final_df_test.columns.duplicated()]
+    final_df_features = final_df_test.drop(['Outcome_encoded_home', 'Outcome_encoded_away', 'GF_Home_away', 'GF_Away_away'], axis = 1)
   
 
-    print(PL_outcomes_cleaned.head())
+    print(final_df_features.head())
+    csv_file = 'final_df_features.csv'
+    if os.path.isfile(csv_file):
+        # If the file exists, read the existing data
+        existing_data = pd.read_csv(csv_file)
+        
+        # Append the new data to the existing data
+        updated_data = pd.concat([existing_data, final_df_features], ignore_index=True)
+        
+        # Save the updated data to the CSV file
+        updated_data.to_csv(csv_file, index=False)
+    else:
+        # If the file doesn't exist, save the new data to the CSV file
+        final_df_features.to_csv(csv_file, index=False)
 
 # Schedule the task to run every Tuesday at 8:00 AM
 schedule.every().tuesday.at("08:00").do(fetch_premier_league_data)
