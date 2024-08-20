@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import schedule
 import numpy as np
+from ELO_system_runner import run_elo_system
 
 def fetch_premier_league_data():
     current_year = 2024  # Update this to the current Premier League season
