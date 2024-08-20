@@ -6,8 +6,8 @@ import joblib
 
 # Load the updated Premier League data without Outcome_encoded
 data = pd.read_csv('model_training.csv')
-X = data.drop('Outcome_encoded', axis=1)
-y = data['Outcome_encoded']
+X = data.drop('Outcome_encoded_home', axis=1)
+y = data['Outcome_encoded_home']
 
 # Split the data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
