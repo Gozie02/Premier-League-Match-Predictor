@@ -135,8 +135,8 @@ def fetch_premier_league_data():
     PL_outcomes_cleaned.insert(7, 'GF_Home', home_goals)
     away_goals = PL_outcomes_cleaned.pop('GF_Away')
     PL_outcomes_cleaned.insert(8, 'GF_Away', away_goals)
-def standardize_team_name(team_name):
-  return team_name_mapping.get(team_name, team_name)
+    def standardize_team_name(team_name):
+        return team_name_mapping.get(team_name, team_name)
 # Mapping different representations of team names to a single standardized name
     team_name_mapping = {
       'Man City': 'Manchester City',
