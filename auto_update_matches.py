@@ -221,7 +221,7 @@ def fetch_premier_league_data():
         final_df_features.to_csv(csv_file_without_outcome, index=False)
 
 # Schedule the task to run every Tuesday at 8:00 AM
-schedule.every().wednesday.at("08:30").do(fetch_premier_league_data)
+schedule.every().wednesday.at("09:15").do(fetch_premier_league_data)
 
 while True:
     schedule.run_pending()
