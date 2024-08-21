@@ -66,6 +66,11 @@ def fetch_organized_premier_league_data():
             if 'Date' not in team_data.columns:
                 print(f"Skipping {team_name} in {current_year}: 'Date' column missing.")
                 continue
+            team_data['Date'] = team_data['Date'].astype(str)
+            today = datetime.datetime.now().date()
+            last_wednesday = today - datetime.timedelta(days=today.weekday() + 4)
+            this_wednesday = last_wednesday + datetime.timedelta(days=7)
+            team_data = team_data[(team_data['Date'] >= last_wednesday.strftime('%Y-%m-%d')) & (team_data['Date'] <= this_wednesday.strftime('%Y-%m-%d'))]
             if shooting is not None:
                 shooting_columns = ["Date", "Sh", "SoT", "G/Sh", "G/SoT", "Dist", "PK", "PKatt", "xG", "npxG", "npxG/Sh"]
                 shooting_columns = [col for col in shooting_columns if col in shooting.columns]
