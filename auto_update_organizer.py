@@ -6,8 +6,13 @@ import schedule
 import numpy as np
 from ELO_system_runner import run_elo_system
 from Performance_Tracker import show_recent_performance
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 def fetch_organized_premier_league_data():
+    logging.info("Starting Premier League data fetch")
     current_year = 2024  # Update this to the current Premier League season
     PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
     matches = []
@@ -20,6 +25,9 @@ def fetch_organized_premier_league_data():
     squad_links = [l.get('href') for l in standings_table.find_all('a')]
     squad_links = [l for l in squad_links if '/squads/' in l]
     team_urls = [f"https://fbref.com{l}" for l in squad_links]
+
+    print("Fetching Premier League data...")
+    logging.info("Fetching Premier League data")
 
     for team_url in team_urls:
         team_name = team_url.split("/")[-1].replace("-Stats", "").replace("-", " ")
@@ -118,8 +126,12 @@ def fetch_organized_premier_league_data():
 
     all_matches_df = pd.concat(matches, ignore_index=True)
     all_matches_df = all_matches_df.drop_duplicates(subset=['Date', 'Team'], keep='first')
+    print("Data fetched successfully")
+    logging.info("Data fetched successfully")
 
     # Additional preprocessing steps
+    print("Performing data preprocessing...")
+    logging.info("Performing data preprocessing")
     outcome_mapping = {'W': 1, 'D': 2, 'L': 0}
     all_matches_df['Outcome_encoded'] = all_matches_df['Result'].map(outcome_mapping)
     PL_outcomes_cleaned = all_matches_df.drop(['Unnamed: 0','Captain', 'Match Report', 'Notes', 'Comp', 'Result'], axis = 1)
@@ -193,8 +205,13 @@ def fetch_organized_premier_league_data():
     final_columns_to_drop = ['Home_Team_x', 'Away_Team_x', 'Home_Team_y', 'Away_Team_y', 'Date_away', 'Time_away', 'Day_away', 'Referee_away', 'Round_y', 'Season_y', 'Date_y',
                          'Referee_home']
     final_df.drop(columns=final_columns_to_drop, inplace=True)
+
+    print("Data preprocessing completed")
+    logging.info("Data preprocessing completed")
     print(final_df.head())
     csv_file = 'final_df_organized.csv'
+    print(f"Saving data to {csv_file}...")
+    logging.info(f"Saving data to {csv_file}")
     if os.path.isfile(csv_file):
         # If the file exists, read the existing data
         existing_data = pd.read_csv(csv_file)
@@ -207,9 +224,13 @@ def fetch_organized_premier_league_data():
     else:
         # If the file doesn't exist, save the new data to the CSV file
         final_df.to_csv(csv_file, index=False)
+    print(f"Data saved to {csv_file}")
+    logging.info(f"Data saved to {csv_file}")
+
+    logging.info("Premier League data fetch completed")
 
 # Schedule the task to run every Tuesday at 8:00 AM
-schedule.every().wednesday.at("09:15").do(fetch_organized_premier_league_data)
+schedule.every().wednesday.at("10:20").do(fetch_organized_premier_league_data)
 
 while True:
     schedule.run_pending()
