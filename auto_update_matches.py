@@ -254,5 +254,5 @@ logging.info("Premier League data fetch completed")
 def run_script():
     exec(open("auto_update_matches.py").read())
 
-schedule.every().wednesday.at("12:20").do(run_script)
+schedule.every().wednesday.at("15:30").do(run_script)
 
