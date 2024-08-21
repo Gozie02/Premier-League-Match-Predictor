@@ -2,7 +2,7 @@ name: Update Premier League Data
 
 on:
   schedule:
-    - cron: '0 8 * * 3'  # Runs every Wednesday at 8:00 AM UTC
+    - cron: '30 8 * * 3'  # Runs every Wednesday at 8:00 AM UTC
 
 jobs:
   update-data:
