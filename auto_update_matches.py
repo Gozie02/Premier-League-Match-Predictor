@@ -245,7 +245,6 @@ try:
 
 except Exception as e:
     logging.error(f"Failed to fetch Premier League data: {e}")
-    continue
 
 logging.info("Premier League data fetch completed")
 
