@@ -27,10 +27,15 @@ jobs:
     - name: Run Premier League data update script
       run: python auto_update_matches.py
 
+    - name: Fetch the latest changes before pushing
+      run: |
+        git fetch origin
+        git rebase origin/main
+
     - name: Commit and push changes
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add .
         git commit -m "Update Premier League data" || echo "No changes to commit"
-        git push
+        git push origin main
