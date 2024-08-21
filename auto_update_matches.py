@@ -10,6 +10,7 @@ import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logging.info("Starting update_premier_league_data.py script")
 
 def fetch_premier_league_data():
     logging.info("Starting Premier League data fetch")
@@ -246,7 +247,7 @@ def fetch_premier_league_data():
     logging.info("Premier League data fetch completed")
 
 # Schedule the task to run every Tuesday at 8:00 AM
-schedule.every().wednesday.at("10:20").do(fetch_premier_league_data)
+schedule.every().wednesday.at("10:45").do(fetch_premier_league_data)
 
 while True:
     schedule.run_pending()
