@@ -6,8 +6,13 @@ import schedule
 import numpy as np
 from ELO_system_runner import run_elo_system
 from Performance_Tracker import show_recent_performance
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 def fetch_premier_league_data():
+    logging.info("Starting Premier League data fetch")
     current_year = 2024  # Update this to the current Premier League season
     PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
     matches = []
@@ -20,6 +25,9 @@ def fetch_premier_league_data():
     squad_links = [l.get('href') for l in standings_table.find_all('a')]
     squad_links = [l for l in squad_links if '/squads/' in l]
     team_urls = [f"https://fbref.com{l}" for l in squad_links]
+
+    print("Fetching Premier League data...")
+    logging.info("Fetching Premier League data")
 
     for team_url in team_urls:
         team_name = team_url.split("/")[-1].replace("-Stats", "").replace("-", " ")
@@ -119,8 +127,12 @@ def fetch_premier_league_data():
 
     all_matches_df = pd.concat(matches, ignore_index=True)
     all_matches_df = all_matches_df.drop_duplicates(subset=['Date', 'Team'], keep='first')
+    print("Data fetched successfully")
+    logging.info("Data fetched successfully")
 
     # Additional preprocessing steps
+    print("Performing data preprocessing...")
+    logging.info("Performing data preprocessing")
     outcome_mapping = {'W': 1, 'D': 2, 'L': 0}
     all_matches_df['Outcome_encoded'] = all_matches_df['Result'].map(outcome_mapping)
     PL_outcomes_cleaned = all_matches_df.drop(['Unnamed: 0','Captain', 'Match Report', 'Notes', 'Comp', 'Result'], axis = 1)
@@ -199,29 +211,42 @@ def fetch_premier_league_data():
     final_df_test = final_df_test.loc[:,~final_df_test.columns.duplicated()]
     final_df_modeling = final_df_test.drop(['Outcome_encoded_away', 'GF_Home_away', 'GF_Away_away'], axis = 1)
     final_df_features = final_df_test.drop(['Outcome_encoded_home', 'Outcome_encoded_away', 'GF_Home_away', 'GF_Away_away'], axis = 1)
+    print("Data preprocessing completed")
+    logging.info("Data preprocessing completed")
   
 
     print(final_df_features.head())
 
 # Save the preprocessed data with Outcome_encoded to a CSV file
     csv_file_with_outcome = 'model_training.csv'
+    print(f"Saving data to {csv_file_with_outcome}...")
+    logging.info(f"Saving data to {csv_file_with_outcome}")
     if os.path.isfile(csv_file_with_outcome):
         existing_data_with_outcome = pd.read_csv(csv_file_with_outcome)
         updated_data_with_outcome = pd.concat([existing_data_with_outcome, final_df_modeling], ignore_index=True)
         updated_data_with_outcome.to_csv(csv_file_with_outcome, index=False)
     else:
         final_df_modeling.to_csv(csv_file_with_outcome, index=False)
+
+    print(f"Data saved to {csv_file_with_outcome}")
+    logging.info(f"Data saved to {csv_file_with_outcome}")
         
     csv_file_without_outcome = 'final_df_features.csv'
+    print(f"Saving data to {csv_file_without_outcome}...")
+    logging.info(f"Saving data to {csv_file_without_outcome}")
     if os.path.isfile(csv_file_without_outcome):
         existing_data_without_outcome = pd.read_csv(csv_file_without_outcome)
         updated_data_without_outcome = pd.concat([existing_data_without_outcome, final_df_features], ignore_index=True)
         updated_data_without_outcome.to_csv(csv_file_without_outcome, index=False)
     else:
         final_df_features.to_csv(csv_file_without_outcome, index=False)
+    print(f"Data saved to {csv_file_without_outcome}")
+    logging.info(f"Data saved to {csv_file_without_outcome}")
+
+    logging.info("Premier League data fetch completed")
 
 # Schedule the task to run every Tuesday at 8:00 AM
-schedule.every().wednesday.at("09:15").do(fetch_premier_league_data)
+schedule.every().wednesday.at("10:20").do(fetch_premier_league_data)
 
 while True:
     schedule.run_pending()
