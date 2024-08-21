@@ -11,7 +11,7 @@ import logging
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logging.info("Starting update_premier_league_organizer_data.py script")
-def fetch_organized_premier_league_data():
+try:
     logging.info("Starting Premier League data fetch")
     current_year = 2024  # Update this to the current Premier League season
     PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
@@ -224,16 +224,15 @@ def fetch_organized_premier_league_data():
     else:
         # If the file doesn't exist, save the new data to the CSV file
         final_df.to_csv(csv_file, index=False)
-    print(f"Data saved to {csv_file}")
-    logging.info(f"Data saved to {csv_file}")
+        print(f"Data saved to {csv_file}")
+        logging.info(f"Data saved to {csv_file}")
 
-    logging.info("Premier League data fetch completed")
+except Exception as e:
+    logging.error(f"Failed to fetch Premier League data: {e}")
+    
+logging.info("Premier League data fetch completed")
 
-# Schedule the task to run every Tuesday at 8:00 AM
-schedule.every().wednesday.at("10:45").do(fetch_organized_premier_league_data)
+def run_script():
+    exec(open("auto_update_matches.py").read())
 
-while True:
-    logging.info("Running pending scheduled tasks")
-    schedule.run_pending()
-    logging.info("Waiting for the next scheduled task")
-    time.sleep(60)  # Check every minute if the scheduled task needs to run# Check every minute if the scheduled task needs to run
+schedule.every().wednesday.at("11:35").do(run_script)
