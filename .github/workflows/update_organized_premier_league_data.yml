@@ -20,12 +20,17 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests beautifulsoup4 pandas schedule numpy 
+        pip install requests beautifulsoup4 pandas schedule numpy
         pip install lxml
         pip install html5lib
 
     - name: Run Premier League data update script
       run: python auto_update_organizer.py
+
+    - name: Fetch the latest changes before pushing
+      run: |
+        git fetch origin
+        git rebase origin/main
 
     - name: Commit and push changes
       run: |
@@ -33,4 +38,4 @@ jobs:
         git config --local user.name "GitHub Action"
         git add .
         git commit -m "Update Premier League data" || echo "No changes to commit"
-        git push
+        git push origin main
