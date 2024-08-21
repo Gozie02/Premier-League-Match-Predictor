@@ -1,0 +1,21 @@
+name: Test Auto Update Matches
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test-update:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Run update script
+      run: python auto_update_matches.py
