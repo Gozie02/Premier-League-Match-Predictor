@@ -138,7 +138,7 @@ try:
     logging.info("Performing data preprocessing")
     outcome_mapping = {'W': 1, 'D': 2, 'L': 0}
     all_matches_df['Outcome_encoded'] = all_matches_df['Result'].map(outcome_mapping)
-    PL_outcomes_cleaned = all_matches_df.drop(['Unnamed: 0','Captain', 'Match Report', 'Notes', 'Comp', 'Result'], axis = 1)
+    PL_outcomes_cleaned = all_matches_df.drop(['Captain', 'Match Report', 'Notes', 'Comp', 'Result'], axis = 1)
     Big_Six = ["Manchester City", "Arsenal", "Chelsea", "Liverpool", "Tottenham", "Manchester Utd"]
     PL_outcomes_cleaned['Against_Big_Six'] = np.where(PL_outcomes_cleaned['Opponent'].isin(Big_Six), 1, 0)
     PL_outcomes_cleaned.sort_values(by='Date', inplace=True)
