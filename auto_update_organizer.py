@@ -9,6 +9,7 @@ from Performance_Tracker import show_recent_performance
 import logging
 import lxml
 import datetime
+import html5lib
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
