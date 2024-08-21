@@ -8,6 +8,7 @@ from ELO_system_runner import run_elo_system
 from Performance_Tracker import show_recent_performance
 import logging
 import lxml
+import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -236,4 +237,4 @@ logging.info("Premier League data fetch completed")
 def run_script():
     exec(open("auto_update_matches.py").read())
 
-schedule.every().wednesday.at("11:55").do(run_script)
+schedule.every().wednesday.at("12:20").do(run_script)
