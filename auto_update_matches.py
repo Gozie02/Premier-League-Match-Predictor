@@ -239,11 +239,12 @@ if os.path.isfile(csv_file_without_outcome):
     updated_data_without_outcome.to_csv(csv_file_without_outcome, index=False)
 else:
     final_df_features.to_csv(csv_file_without_outcome, index=False)
-print(f"Data saved to {csv_file_without_outcome}")
-logging.info(f"Data saved to {csv_file_without_outcome}")
+    print(f"Data saved to {csv_file_without_outcome}")
+    logging.info(f"Data saved to {csv_file_without_outcome}")
 
-except Exception as e:
-    logging.error(f"Failed to fetch Premier League data: {e}")
+    except Exception as e:
+        logging.error(f"Failed to fetch Premier League data: {e}")
+        continue
 
 logging.info("Premier League data fetch completed")
 
