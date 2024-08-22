@@ -8,6 +8,7 @@ import logging
 import lxml
 import datetime
 import html5lib
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -235,5 +236,5 @@ logging.info("Premier League data fetch completed")
 def run_script():
     exec(open("auto_update_match_df.py").read())
 
-schedule.every().thursday.at("16:05").do(run_script)
+schedule.every().thursday.at("17:30").do(run_script)
 
