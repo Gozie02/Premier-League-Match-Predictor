@@ -18,6 +18,17 @@ final_df = final_df.drop(columns=['Match_ID'])
 final_columns_to_drop = ['Home_Team_x', 'Away_Team_x', 'Home_Team_y', 'Away_Team_y', 'Date_away', 'Time_away', 'Day_away', 'Referee_away', 'Round_y', 'Season_y', 'Date_y',
                      'Referee_home']
 final_df.drop(columns=final_columns_to_drop, inplace=True)
+csv_file = 'final_df_organized.csv'
+print(f"Saving data to {csv_file}...")
+logging.info(f"Saving data to {csv_file}")
+if os.path.isfile(csv_file):
+  existing_data = pd.read_csv(csv_file)
+  updated_data = pd.concat([existing_data, final_df], ignore_index=True)
+  updated_data.to_csv(csv_file, index=False)
+else:
+  final_df.to_csv(csv_file, index=False)
+  print(f"Data saved to {csv_file}")
+  logging.info(f"Data saved to {csv_file}")
 final_df1 = pd.get_dummies(final_df, columns=['Home_Team_home', 'Away_Team_home'], prefix=['home', 'away'], dtype = 'int')
 final_df_test = final_df1._get_numeric_data()
 final_df_test = final_df_test.loc[:,~final_df_test.columns.duplicated()]
