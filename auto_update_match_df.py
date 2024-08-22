@@ -4,8 +4,6 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import schedule
 import numpy as np
-from ELO_system_runner import run_elo_system
-from Performance_Tracker import show_recent_performance
 import logging
 import lxml
 import datetime
@@ -19,8 +17,8 @@ today = datetime.date.today()
 offset = (today.weekday() - 3) % 7
 last_thursday = today - datetime.timedelta(days=offset)
 
-if today.weekday() == 2:  # If today is a Wednesday
-    last_thursday -= timedelta(days=7)
+if today.weekday() == 3:  # If today is a Wednesday
+    last_thursday -= datetime.timedelta(days=7)
 this_thursday = last_thursday + datetime.timedelta(days=7)  # Upcoming Wednesday
 # Convert to string format (YYYY-MM-DD) for comparison
 last_thursday_str = last_thursday.strftime('%Y-%m-%d')
@@ -137,6 +135,19 @@ try:
     all_matches_df = all_matches_df.drop_duplicates(subset=['Date', 'Team'], keep='first')
     all_matches_df['Date'] = all_matches_df['Date'].astype(str)
     all_matches_df = all_matches_df[(all_matches_df['Date'] >= last_thursday_str) & (all_matches_df['Date'] < this_thursday_str)]
+    def rename_duplicate_columns(df):
+        columns = df.columns.tolist()
+        column_counts = {}
+        for i, col in enumerate(columns):
+            if col in column_counts:
+                column_counts[col] += 1
+                new_col_name = f"{col}.{column_counts[col]}"
+                columns[i] = new_col_name
+            else:
+                column_counts[col] = 0  # First occurrence, no suffix needed
+        df.columns = columns
+        return df
+    all_matches_df = rename_duplicate_columns(all_matches_df)
     print("Data fetched successfully")
     logging.info("Data fetched successfully")
     
@@ -145,7 +156,7 @@ try:
     logging.info("Performing data preprocessing")
     outcome_mapping = {'W': 1, 'D': 2, 'L': 0}
     all_matches_df['Outcome_encoded'] = all_matches_df['Result'].map(outcome_mapping)
-    PL_outcomes_cleaned = all_matches_df.drop(['Captain', 'Match Report', 'Notes', 'Comp', 'Result'], axis = 1)
+    PL_outcomes_cleaned = all_matches_df.drop(['Captain', 'Match Report', 'Notes', 'Comp', 'Result', 'Opp Formation'], axis = 1)
     Big_Six = ["Manchester City", "Arsenal", "Chelsea", "Liverpool", "Tottenham", "Manchester Utd"]
     PL_outcomes_cleaned['Against_Big_Six'] = np.where(PL_outcomes_cleaned['Opponent'].isin(Big_Six), 1, 0)
     PL_outcomes_cleaned.sort_values(by='Date', inplace=True)
@@ -197,61 +208,24 @@ try:
     away_df.sort_values(by='Date', inplace=True)
     away_df.reset_index(inplace=True, drop=True)
     combined_df = pd.merge(home_df, away_df, on='Match_ID', suffixes=('_home', '_away'), how = "outer")
+    combined_df = combined_df.astype({'GF_Home_home': 'int', 'GF_Away_home': 'int', 'GF_Home_away': 'int', 'GF_Away_away': 'int'})
     columns_to_drop1 = ['Attendance_home', 'Attendance_away', 'Round_away', 'Formation_home', 'Formation_away']
     combined_df.drop(columns=columns_to_drop1, inplace=True)
     combined_df['Round_home'] = combined_df['Round_home'].str.extract('(\d+)').astype(int)
-    final_elos, elo_trends = run_elo_system(combined_df)
-    performance_df = show_recent_performance(combined_df)
-    performance_columns_to_drop = ['Home_Team_Avg_Date_home_Last_7', 'Home_Team_Avg_Time_home_Last_7', 'Home_Team_Avg_Round_home_Last_7', 'Home_Team_Avg_Day_home_Last_7',
-                               'Home_Team_Avg_Home_Team_home_Last_7', 'Home_Team_Avg_Away_Team_home_Last_7', 'Home_Team_Avg_Referee_home_Last_7', 'Away_Team_Avg_Date_away_Last_7',
-                               'Away_Team_Avg_Time_away_Last_7', 'Away_Team_Avg_Day_away_Last_7', 'Away_Team_Avg_Home_Team_away_Last_7','Away_Team_Avg_Away_Team_away_Last_7']
-    
-    performance_df.drop(columns=performance_columns_to_drop, inplace=True)
-    combined_with_performance = pd.merge(combined_df, performance_df, on='Match_ID', how='left')
-    combined_with_performance_renamed = combined_with_performance.rename(columns={'Date_home': 'Date', 'Round_home': 'Round','Season_home': 'Season'})
-    combined_with_performance_unique = combined_with_performance_renamed.drop_duplicates(subset=['Match_ID'])
-    final_elos_unique = final_elos.drop_duplicates(subset=['Match_ID'])
-    final_df = pd.merge(combined_with_performance_unique, final_elos_unique, on='Match_ID', how='left')
-    final_df = final_df.drop(columns=['Match_ID'])
-    final_columns_to_drop = ['Home_Team_x', 'Away_Team_x', 'Home_Team_y', 'Away_Team_y', 'Date_away', 'Time_away', 'Day_away', 'Referee_away', 'Round_y', 'Season_y', 'Date_y',
-                         'Referee_home']
-    final_df.drop(columns=final_columns_to_drop, inplace=True)
-    final_df1 = pd.get_dummies(final_df, columns=['Home_Team_home', 'Away_Team_home'], prefix=['home', 'away'], dtype = 'int')
-    final_df_test = final_df1._get_numeric_data()
-    final_df_test = final_df_test.loc[:,~final_df_test.columns.duplicated()]
-    final_df_modeling = final_df_test.drop(['Outcome_encoded_away', 'GF_Home_away', 'GF_Away_away'], axis = 1)
-    final_df_features = final_df_test.drop(['Outcome_encoded_home', 'Outcome_encoded_away', 'GF_Home_away', 'GF_Away_away'], axis = 1)
-    print("Data preprocessing completed")
-    logging.info("Data preprocessing completed")
-    
-    
-    print(final_df_features.head())
     
     # Save the preprocessed data with Outcome_encoded to a CSV file
-    csv_file_with_outcome = 'model_training.csv'
-    print(f"Saving data to {csv_file_with_outcome}...")
-    logging.info(f"Saving data to {csv_file_with_outcome}")
-    if os.path.isfile(csv_file_with_outcome):
-        existing_data_with_outcome = pd.read_csv(csv_file_with_outcome)
-        updated_data_with_outcome = pd.concat([existing_data_with_outcome, final_df_modeling], ignore_index=True)
-        updated_data_with_outcome.to_csv(csv_file_with_outcome, index=False)
+    combined_csv_file = 'ELO_df.csv'
+    print(f"Saving data to {combined_csv_file}...")
+    logging.info(f"Saving data to {combined_csv_file}")
+    if os.path.isfile(combined_csv_file):
+        existing_data_with_outcome = pd.read_csv(combined_csv_file)
+        updated_data_with_outcome = pd.concat([existing_data_with_outcome, combined_df], ignore_index=True)
+        updated_data_with_outcome.to_csv(combined_csv_file, index=False)
     else:
-        final_df_modeling.to_csv(csv_file_with_outcome, index=False)
+        combined_df.to_csv(combined_csv_file, index=False)
     
-    print(f"Data saved to {csv_file_with_outcome}")
-    logging.info(f"Data saved to {csv_file_with_outcome}")
-        
-    csv_file_without_outcome = 'final_df_features.csv'
-    print(f"Saving data to {csv_file_without_outcome}...")
-    logging.info(f"Saving data to {csv_file_without_outcome}")
-    if os.path.isfile(csv_file_without_outcome):
-        existing_data_without_outcome = pd.read_csv(csv_file_without_outcome)
-        updated_data_without_outcome = pd.concat([existing_data_without_outcome, final_df_features], ignore_index=True)
-        updated_data_without_outcome.to_csv(csv_file_without_outcome, index=False)
-    else:
-        final_df_features.to_csv(csv_file_without_outcome, index=False)
-        print(f"Data saved to {csv_file_without_outcome}")
-        logging.info(f"Data saved to {csv_file_without_outcome}")
+    print(f"Data saved to {combined_csv_file}")
+    logging.info(f"Data saved to {combined_csv_file}")
 
 except Exception as e:
     logging.error(f"Failed to fetch Premier League data: {e}")
@@ -259,7 +233,7 @@ except Exception as e:
 logging.info("Premier League data fetch completed")
 
 def run_script():
-    exec(open("auto_update_matches.py").read())
+    exec(open("auto_update_match_df.py").read())
 
 schedule.every().thursday.at("10:35").do(run_script)
 
