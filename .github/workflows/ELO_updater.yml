@@ -2,7 +2,7 @@ name: Update ELO Ratings
 
 on:
   schedule:
-    - cron: '05 17 * * 4'  # Run every Wednesday at 10:00 AM
+    - cron: '05 18 * * 4'  # Run every Wednesday at 10:00 AM
 
 jobs:
   build:
