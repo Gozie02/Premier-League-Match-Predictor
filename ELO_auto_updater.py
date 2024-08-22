@@ -69,4 +69,4 @@ else:
 def run_script():
     exec(open("ELO_auto_updater.py").read())
 
-schedule.every().thursday.at("17:05").do(run_script)
+schedule.every().thursday.at("18:05").do(run_script)
