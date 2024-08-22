@@ -1,41 +1,65 @@
-name: Update Premier League Data
+name: Your Workflow Name
 
 on:
   schedule:
-    - cron: '50 07 * * 4'  # Runs every Wednesday at 8:00 AM UTC
+    - cron: '00 10 * * 4'  # Run every Wednesday at 12:25 PM
 
 jobs:
-  update-data:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Fetch all history for rebasing
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x'
+        python-version: '3.x'  # Specify a compatible Python version (e.g., 3.9)
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install requests beautifulsoup4 pandas schedule numpy
-        pip install lxml
         pip install html5lib
+        pip install lxml
+        
 
-    - name: Run Premier League data update script
-      run: python auto_update_matches.py
+    - name: Stash changes
+      run: |
+        git stash
 
-    - name: Fetch the latest changes before pushing
+    - name: Fetch latest changes
       run: |
         git fetch origin
+
+    - name: Rebase branch
+      run: |
         git rebase origin/main
 
-    - name: Commit and push changes
+    - name: Restore stashed changes
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+        git stash apply
+
+    - name: Run script
+      run: python auto_update_matches.py
+
+    - name: Commit changes
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
         git add .
-        git commit -m "Update Premier League data" || echo "No changes to commit"
-        git push origin main
+        git commit -m "Automated update"
+
+    - name: Fetch latest changes before pushing
+      run: |
+        git fetch origin
+
+    - name: Rebase branch before pushing
+      run: |
+        git rebase origin/main
+
+    - name: Push changes
+      run: |
+        git push
