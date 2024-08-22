@@ -1,0 +1,56 @@
+name: Update ELO Ratings
+
+on:
+  schedule:
+    - cron: '05 17 * * 4'  # Run every Wednesday at 10:00 AM
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Fetch all history for rebasing
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'  # Specify a compatible Python version (e.g., 3.9)
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests beautifulsoup4 pandas schedule numpy
+        pip install html5lib
+        pip install lxml
+
+    - name: Fetch latest changes
+      run: |
+        git fetch origin
+
+    - name: Rebase branch
+      run: |
+        git rebase origin/main
+
+    - name: Run script
+      run: python ELO_auto_updater.py
+
+    - name: Commit changes
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+        git add .
+        git commit -m "Automated update"
+
+    - name: Fetch latest changes before pushing
+      run: |
+        git fetch origin
+
+    - name: Rebase branch before pushing
+      run: |
+        git rebase origin/main
+
+    - name: Push changes
+      run: |
+        git push
