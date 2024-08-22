@@ -3,6 +3,7 @@ from Performance_Tracker import show_recent_performance
 import pandas as pd
 import logging
 import os
+import schedule
 combined_df = pd.read_csv('ELO_df.csv')
 final_elos, elo_trends = run_elo_system(combined_df)
 performance_df = show_recent_performance(combined_df)
@@ -72,4 +73,4 @@ else:
 def run_script():
     exec(open("ELO_auto_updater.py").read())
 
-schedule.every().thursday.at("19:45").do(run_script)
+schedule.every().thursday.at("20:00").do(run_script)
