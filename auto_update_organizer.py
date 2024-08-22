@@ -14,44 +14,56 @@ import html5lib
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logging.info("Starting update_premier_league_organizer_data.py script")
+
+logging.info("Starting Premier League data fetch")
+today = datetime.date.today()
+offset = (today.weekday() - 3) % 7
+last_thursday = today - datetime.timedelta(days=offset)
+
+if today.weekday() == 2:  # If today is a Wednesday
+    last_thursday -= timedelta(days=7)
+this_thursday = last_thursday + datetime.timedelta(days=7)  # Upcoming Wednesday
+# Convert to string format (YYYY-MM-DD) for comparison
+last_thursday_str = last_thursday.strftime('%Y-%m-%d')
+this_thursday_str = this_thursday.strftime('%Y-%m-%d')
+current_year = 2024  # Update this to the current Premier League season
+PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
+matches = []
+
+seasons = requests.get(PL_History)
+soup = BeautifulSoup(seasons.text, 'html.parser')
+time.sleep(3)
+standings_table = soup.select('table.stats_table')[0]
+
+squad_links = [l.get('href') for l in standings_table.find_all('a')]
+squad_links = [l for l in squad_links if '/squads/' in l]
+team_urls = [f"https://fbref.com{l}" for l in squad_links]
+
+print("Fetching Premier League data...")
+logging.info("Fetching Premier League data")
+
+
 try:
-    logging.info("Starting Premier League data fetch")
-    current_year = 2024  # Update this to the current Premier League season
-    PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
-    matches = []
-
-    seasons = requests.get(PL_History)
-    soup = BeautifulSoup(seasons.text, 'html.parser')
-    time.sleep(3)
-    standings_table = soup.select('table.stats_table')[0]
-
-    squad_links = [l.get('href') for l in standings_table.find_all('a')]
-    squad_links = [l for l in squad_links if '/squads/' in l]
-    team_urls = [f"https://fbref.com{l}" for l in squad_links]
-
-    print("Fetching Premier League data...")
-    logging.info("Fetching Premier League data")
-
     for team_url in team_urls:
         team_name = team_url.split("/")[-1].replace("-Stats", "").replace("-", " ")
-
+    
         data = requests.get(team_url)
-
+    
         if data.status_code != 200:
             print(f"Failed to retrieve data for {team_name} in {current_year}. Status code: {data.status_code}")
             continue
         team_matches = pd.read_html(data.text, match="Scores & Fixtures")
-
+    
         if not team_matches:
             print(f"No 'Fixtures' table found for {team_name} in {current_year}")
             continue
-
+    
         team_matches = team_matches[0]
-
+    
         soup = BeautifulSoup(data.text, 'html.parser')
         time.sleep(3)
         links = [l.get("href") for l in soup.find_all('a')]
-
+    
         def fetch_table(links, identifier, table_name):
             relevant_links = [l for l in links if l and identifier in l]
             if not relevant_links:
@@ -64,24 +76,20 @@ try:
                 return table
             except ValueError:
                 return None
-
+    
         shooting = fetch_table(links, "all_comps/shooting/", "Shooting")
         possession = fetch_table(links, "all_comps/possession", "Possession")
         passing = fetch_table(links, "all_comps/passing", "Passing")
         GCA = fetch_table(links, "all_comps/gca", "GCA")
         defense = fetch_table(links, "all_comps/defense", "Defensive Actions")
         misc = fetch_table(links, "all_comps/misc", "Miscellaneous Stats")
-
+    
         try:
             team_data = team_matches
             if 'Date' not in team_data.columns:
                 print(f"Skipping {team_name} in {current_year}: 'Date' column missing.")
                 continue
-            team_data['Date'] = team_data['Date'].astype(str)
-            today = datetime.datetime.now().date()
-            last_wednesday = today - datetime.timedelta(days=today.weekday() + 4)
-            this_wednesday = last_wednesday + datetime.timedelta(days=7)
-            team_data = team_data[(team_data['Date'] >= last_wednesday.strftime('%Y-%m-%d')) & (team_data['Date'] <= this_wednesday.strftime('%Y-%m-%d'))]
+    
             if shooting is not None:
                 shooting_columns = ["Date", "Sh", "SoT", "G/Sh", "G/SoT", "Dist", "PK", "PKatt", "xG", "npxG", "npxG/Sh"]
                 shooting_columns = [col for col in shooting_columns if col in shooting.columns]
@@ -106,18 +114,18 @@ try:
                 misc_columns = ["Date", "Recov", "Won", "Lost", "Won%"]
                 misc_columns = [col for col in misc_columns if col in misc.columns]
                 team_data = team_data.merge(misc[misc_columns], on="Date", how="left")
-
+    
         except ValueError as e:
             print(f"Error merging data for {team_name} in {current_year}: {e}")
             continue
-
+    
         team_data = team_data[team_data["Comp"] == "Premier League"]
-
+    
         team_data["Season"] = current_year
         team_data["Team"] = team_name
         matches.append(team_data)
         time.sleep(3)
-
+    
     for df in matches:
         if 'Date' in df.columns:
             duplicates = df[df.duplicated(subset='Date', keep=False)]
@@ -126,12 +134,14 @@ try:
                 print(duplicates)
         else:
             print(f"Warning: DataFrame for {df['Team'].iloc[0] if 'Team' in df.columns else 'Unknown Team'} in {df['Season'].iloc[0] if 'Season' in df.columns else 'Unknown Season'} does not have a 'Date' column.")
-
+    
     all_matches_df = pd.concat(matches, ignore_index=True)
     all_matches_df = all_matches_df.drop_duplicates(subset=['Date', 'Team'], keep='first')
+    all_matches_df['Date'] = all_matches_df['Date'].astype(str)
+    all_matches_df = all_matches_df[(all_matches_df['Date'] >= thursday_str) & (all_matches_df['Date'] < this_thursday_str)]
     print("Data fetched successfully")
     logging.info("Data fetched successfully")
-
+    
     # Additional preprocessing steps
     print("Performing data preprocessing...")
     logging.info("Performing data preprocessing")
@@ -157,7 +167,7 @@ try:
     PL_outcomes_cleaned.insert(8, 'GF_Away', away_goals)
     def standardize_team_name(team_name):
         return team_name_mapping.get(team_name, team_name)
-# Mapping different representations of team names to a single standardized name
+    # Mapping different representations of team names to a single standardized name
     team_name_mapping = {
       'Man City': 'Manchester City',
       'Manchester City': 'Manchester City',
@@ -197,7 +207,7 @@ try:
     performance_columns_to_drop = ['Home_Team_Avg_Date_home_Last_7', 'Home_Team_Avg_Time_home_Last_7', 'Home_Team_Avg_Round_home_Last_7', 'Home_Team_Avg_Day_home_Last_7',
                                'Home_Team_Avg_Home_Team_home_Last_7', 'Home_Team_Avg_Away_Team_home_Last_7', 'Home_Team_Avg_Referee_home_Last_7', 'Away_Team_Avg_Date_away_Last_7',
                                'Away_Team_Avg_Time_away_Last_7', 'Away_Team_Avg_Day_away_Last_7', 'Away_Team_Avg_Home_Team_away_Last_7','Away_Team_Avg_Away_Team_away_Last_7']
-
+    
     performance_df.drop(columns=performance_columns_to_drop, inplace=True)
     combined_with_performance = pd.merge(combined_df, performance_df, on='Match_ID', how='left')
     combined_with_performance_renamed = combined_with_performance.rename(columns={'Date_home': 'Date', 'Round_home': 'Round','Season_home': 'Season'})
@@ -208,7 +218,7 @@ try:
     final_columns_to_drop = ['Home_Team_x', 'Away_Team_x', 'Home_Team_y', 'Away_Team_y', 'Date_away', 'Time_away', 'Day_away', 'Referee_away', 'Round_y', 'Season_y', 'Date_y',
                          'Referee_home']
     final_df.drop(columns=final_columns_to_drop, inplace=True)
-
+        
     print("Data preprocessing completed")
     logging.info("Data preprocessing completed")
     print(final_df.head())
@@ -236,6 +246,6 @@ except Exception as e:
 logging.info("Premier League data fetch completed")
 
 def run_script():
-    exec(open("auto_update_matches.py").read())
+    exec(open("auto_update_organizer.py").read())
 
-schedule.every().wednesday.at("15:30").do(run_script)
+schedule.every().thursday.at("07:45").do(run_script)
