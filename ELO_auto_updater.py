@@ -2,6 +2,7 @@ from ELO_system_runner import run_elo_system
 from Performance_Tracker import show_recent_performance
 import pandas as pd
 import logging
+import os
 combined_df = pd.read_csv('ELO_df.csv')
 final_elos, elo_trends = run_elo_system(combined_df)
 performance_df = show_recent_performance(combined_df)
