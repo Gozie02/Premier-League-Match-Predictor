@@ -1,8 +1,8 @@
-name: Your Workflow Name
+name: Update PL Matches
 
 on:
   schedule:
-    - cron: '00 10 * * 4'  # Run every Wednesday at 12:25 PM
+    - cron: '35 10 * * 4'  # Run every Wednesday at 10:00 AM
 
 jobs:
   build:
@@ -24,11 +24,6 @@ jobs:
         pip install requests beautifulsoup4 pandas schedule numpy
         pip install html5lib
         pip install lxml
-        
-
-    - name: Stash changes
-      run: |
-        git stash
 
     - name: Fetch latest changes
       run: |
@@ -37,10 +32,6 @@ jobs:
     - name: Rebase branch
       run: |
         git rebase origin/main
-
-    - name: Restore stashed changes
-      run: |
-        git stash apply
 
     - name: Run script
       run: python auto_update_matches.py
