@@ -136,7 +136,7 @@ try:
     all_matches_df = pd.concat(matches, ignore_index=True)
     all_matches_df = all_matches_df.drop_duplicates(subset=['Date', 'Team'], keep='first')
     all_matches_df['Date'] = all_matches_df['Date'].astype(str)
-    all_matches_df = all_matches_df[(all_matches_df['Date'] >= thursday_str) & (all_matches_df['Date'] < this_thursday_str)]
+    all_matches_df = all_matches_df[(all_matches_df['Date'] >= last_thursday_str) & (all_matches_df['Date'] < this_thursday_str)]
     print("Data fetched successfully")
     logging.info("Data fetched successfully")
     
