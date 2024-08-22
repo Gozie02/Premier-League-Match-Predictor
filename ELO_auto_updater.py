@@ -20,6 +20,7 @@ final_df = final_df.drop(columns=['Match_ID'])
 final_columns_to_drop = ['Unnamed: 0', 'Home_Team_x', 'Away_Team_x', 'Home_Team_y', 'Away_Team_y', 'Date_away', 'Time_away', 'Day_away', 'Referee_away', 'Round_y', 'Season_y', 'Date_y',
                      'Referee_home']
 final_df.drop(columns=final_columns_to_drop, inplace=True)
+final_df = final_df.loc[:,~final_df.columns.duplicated()]
 csv_file = 'final_df_organized.csv'
 print(f"Saving data to {csv_file}...")
 logging.info(f"Saving data to {csv_file}")
@@ -71,4 +72,4 @@ else:
 def run_script():
     exec(open("ELO_auto_updater.py").read())
 
-schedule.every().thursday.at("18:05").do(run_script)
+schedule.every().thursday.at("19:45").do(run_script)
