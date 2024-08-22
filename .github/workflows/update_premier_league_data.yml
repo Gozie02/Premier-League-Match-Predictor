@@ -2,7 +2,7 @@ name: Update PL Matches
 
 on:
   schedule:
-    - cron: '05 16 * * 4'  # Run every Wednesday at 10:00 AM
+    - cron: '30 17 * * 4'  # Run every Wednesday at 10:00 AM
 
 jobs:
   build:
