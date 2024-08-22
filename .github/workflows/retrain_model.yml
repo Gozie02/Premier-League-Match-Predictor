@@ -2,7 +2,7 @@ name: Retrain Model
 
 on:
   schedule:
-    - cron: '30 11 * * 3'  # Runs every Wednesday at 8:30 AM UTC
+    - cron: '55 20 * * 4'  # Runs every Wednesday at 8:30 AM UTC
 
 jobs:
   retrain-model:
@@ -22,14 +22,32 @@ jobs:
         python -m pip install --upgrade pip
         pip install pandas scikit-learn joblib
 
-    - name: Retrain model
+    - name: Fetch latest changes
       run: |
-        python auto_model_retrainer.py
+        git fetch origin
 
-    - name: Commit and push changes
+    - name: Rebase branch
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+        git rebase origin/main
+
+    - name: Run script
+      run: python auto_update_match_df.py
+
+    - name: Commit changes
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
         git add .
-        git commit -m "Retrain model" || echo "No changes to commit"
+        git commit -m "Automated update"
+
+    - name: Fetch latest changes before pushing
+      run: |
+        git fetch origin
+
+    - name: Rebase branch before pushing
+      run: |
+        git rebase origin/main
+
+    - name: Push changes
+      run: |
         git push
