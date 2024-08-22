@@ -15,6 +15,16 @@ import html5lib
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logging.info("Starting update_premier_league_data.py script")
 logging.info("Starting Premier League data fetch")
+today = datetime.date.today()
+offset = (today.weekday() - 3) % 7
+last_thursday = today - datetime.timedelta(days=offset)
+
+if today.weekday() == 2:  # If today is a Wednesday
+    last_thursday -= timedelta(days=7)
+this_thursday = last_thursday + datetime.timedelta(days=7)  # Upcoming Wednesday
+# Convert to string format (YYYY-MM-DD) for comparison
+last_thursday_str = last_thursday.strftime('%Y-%m-%d')
+this_thursday_str = this_thursday.strftime('%Y-%m-%d')
 current_year = 2024  # Update this to the current Premier League season
 PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
 matches = []
@@ -77,11 +87,6 @@ try:
             if 'Date' not in team_data.columns:
                 print(f"Skipping {team_name} in {current_year}: 'Date' column missing.")
                 continue
-            team_data['Date'] = team_data['Date'].astype(str)
-            today = datetime.datetime.now().date()
-            last_wednesday = today - datetime.timedelta(days=today.weekday() + 4)
-            this_wednesday = last_wednesday + datetime.timedelta(days=7)
-            team_data = team_data[(team_data['Date'] >= last_wednesday.strftime('%Y-%m-%d')) & (team_data['Date'] <= this_wednesday.strftime('%Y-%m-%d'))]
     
             if shooting is not None:
                 shooting_columns = ["Date", "Sh", "SoT", "G/Sh", "G/SoT", "Dist", "PK", "PKatt", "xG", "npxG", "npxG/Sh"]
@@ -130,6 +135,8 @@ try:
     
     all_matches_df = pd.concat(matches, ignore_index=True)
     all_matches_df = all_matches_df.drop_duplicates(subset=['Date', 'Team'], keep='first')
+    all_matches_df['Date'] = all_matches_df['Date'].astype(str)
+    all_matches_df = all_matches_df[(all_matches_df['Date'] >= thursday_str) & (all_matches_df['Date'] < this_thursday_str)]
     print("Data fetched successfully")
     logging.info("Data fetched successfully")
     
@@ -254,5 +261,5 @@ logging.info("Premier League data fetch completed")
 def run_script():
     exec(open("auto_update_matches.py").read())
 
-schedule.every().wednesday.at("15:30").do(run_script)
+schedule.every().thursday.at("07:45").do(run_script)
 
