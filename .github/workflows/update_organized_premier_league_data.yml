@@ -2,7 +2,7 @@ name: Your Workflow Name
 
 on:
   schedule:
-    - cron: '00 14 * * WED'  # Run every Wednesday at 12:25 PM
+    - cron: '00 14 * * 4'  # Run every Wednesday at 12:25 PM
 
 jobs:
   build:
