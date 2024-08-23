@@ -112,7 +112,7 @@ home_team_features_df = final_df12.groupby('Home_Team_home').agg(agg_dict).reset
 
 # Group the data by away team and aggregate the features
 away_team_features_df = final_df12.groupby('Away_Team_home').agg(agg_dict).reset_index()
-
+away_team_features_df = away_team_features_df.drop(['Away_Team_Avg_Referee_away_Last_7'], axis = 1)
 
 # Convert the DataFrames to dictionaries
 home_team_features = home_team_features_df.set_index('Home_Team_home').to_dict('index')
