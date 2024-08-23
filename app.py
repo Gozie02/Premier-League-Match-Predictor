@@ -62,11 +62,10 @@ if st.button("Predict Match Outcome"):
     match_data = prepare_input_data(home_team, away_team)
     
     # Remove columns that don't appear in the BaggingClassifier's training data
-    missing_columns = set(match_data.columns) - set(model_feature_names)
-    match_data = match_data.drop(columns=list(missing_columns))
-
+    match_data = match_data[match_data.columns.intersection(model_feature_names)]
+    
     # Reorder the columns in match_data to match the order in model_feature_names
-    match_data = match_data[model_feature_names]
+    match_data = match_data.reindex(columns=model_feature_names)
     
     # Make the prediction
     prediction = model.predict(match_data)
