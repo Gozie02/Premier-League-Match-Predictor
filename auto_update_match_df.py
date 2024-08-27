@@ -15,15 +15,15 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', date
 logging.info("Starting update_premier_league_data.py script")
 logging.info("Starting Premier League data fetch")
 today = datetime.date.today()
-offset = (today.weekday() - 3) % 7
-last_thursday = today - datetime.timedelta(days=offset)
+offset = (today.weekday() - 1) % 7
+last_tuesday = today - datetime.timedelta(days=offset)
 
-if today.weekday() == 3:  # If today is a Wednesday
-    last_thursday -= datetime.timedelta(days=7)
-this_thursday = last_thursday + datetime.timedelta(days=7)  # Upcoming Wednesday
+if today.weekday() == 1:  # If today is a Wednesday
+    last_tuesday -= datetime.timedelta(days=7)
+this_tuesday = last_tuesday + datetime.timedelta(days=7)  # Upcoming Wednesday
 # Convert to string format (YYYY-MM-DD) for comparison
-last_thursday_str = last_thursday.strftime('%Y-%m-%d')
-this_thursday_str = this_thursday.strftime('%Y-%m-%d')
+last_tuesday_str = last_tuesday.strftime('%Y-%m-%d')
+this_tuesday_str = this_tuesday.strftime('%Y-%m-%d')
 current_year = 2024  # Update this to the current Premier League season
 PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
 matches = []
@@ -135,7 +135,7 @@ try:
     all_matches_df = pd.concat(matches, ignore_index=True)
     all_matches_df = all_matches_df.drop_duplicates(subset=['Date', 'Team'], keep='first')
     all_matches_df['Date'] = all_matches_df['Date'].astype(str)
-    all_matches_df = all_matches_df[(all_matches_df['Date'] >= last_thursday_str) & (all_matches_df['Date'] < this_thursday_str)]
+    all_matches_df = all_matches_df[(all_matches_df['Date'] >= last_tuesday_str) & (all_matches_df['Date'] < this_tuesday_str)]
     def rename_duplicate_columns(df):
         columns = df.columns.tolist()
         column_counts = {}
@@ -218,12 +218,7 @@ try:
     combined_csv_file = 'ELO_df.csv'
     print(f"Saving data to {combined_csv_file}...")
     logging.info(f"Saving data to {combined_csv_file}")
-    if os.path.isfile(combined_csv_file):
-        existing_data_with_outcome = pd.read_csv(combined_csv_file)
-        updated_data_with_outcome = pd.concat([existing_data_with_outcome, combined_df], ignore_index=True)
-        updated_data_with_outcome.to_csv(combined_csv_file, index=False)
-    else:
-        combined_df.to_csv(combined_csv_file, index=False)
+    combined_df.to_csv(combined_csv_file, index=False)
     
     print(f"Data saved to {combined_csv_file}")
     logging.info(f"Data saved to {combined_csv_file}")
@@ -236,5 +231,5 @@ logging.info("Premier League data fetch completed")
 def run_script():
     exec(open("auto_update_match_df.py").read())
 
-schedule.every().thursday.at("17:30").do(run_script)
+schedule.every().tuesday.at("09:30").do(run_script)
 
