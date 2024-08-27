@@ -34,20 +34,21 @@ def resize_logo(logo_path, max_size):
     logo.thumbnail(max_size)
     return logo
 
-def set_background_color(color):
+def set_background_gradient(color1, color2):
     st.markdown(
         f"""
         <style>
         .stApp {{
-            background-color: {color};
+            background: linear-gradient(to bottom, {color1}, {color2});
         }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
-background_color = "#530f80"  # Light gray color
-set_background_color(background_color)
+chromatic_color = "#6505a6"  # Chromatic red color
+dull_color = "#25023d"  # Dull teal color
+set_background_gradient(chromatic_color, dull_color)
 
 # Function to prepare the input data with one-hot encoding and additional features
 def prepare_input_data(home_team, away_team):
