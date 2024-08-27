@@ -79,6 +79,7 @@ def prepare_input_data(home_team, away_team):
     return match_data
 
 # Set the maximum size for the logo images
+# Set the maximum size for the logo images
 max_size = (180, 180)
 
 # Display team logos and names
@@ -94,6 +95,23 @@ with col1:
     st.write(f"**{home_team}**")
 
 with col3:
+    st.write("##")
+    st.write("##")
+    st.write("**VS**")
+
+with col5:
+    away_logo_path = get_logo_path(away_team)
+    if os.path.exists(away_logo_path):
+        away_logo = resize_logo(away_logo_path, max_size)
+        st.image(away_logo, use_column_width=True)
+    else:
+        st.write(f"Logo not found for {away_team}")
+    st.write(f"**{away_team}**")
+
+# Create columns for the prediction button and result
+col1, col2, col3 = st.columns([1, 2, 1])
+
+with col2:
     if st.button("Predict Match Outcome"):
         # Prepare the input data using the selected teams
         match_data = prepare_input_data(home_team, away_team)
@@ -106,20 +124,12 @@ with col3:
         
         # Make the prediction
         prediction = model.predict(match_data)
-        
-        # Interpret and display prediction with color coding
-        if prediction[0] == 1:
-            st.write(f"The model predicts that <span style='color: #00ff00;'>{home_team}</span> will win against <span style='color: red;'>{away_team}</span>.", unsafe_allow_html=True)
-        elif prediction[0] == 2:
-            st.write(f"The model predicts a <span style='color: grey;'>draw</span> between <span style='color: grey;'>{home_team}</span> and <span style='color: grey;'>{away_team}</span>.", unsafe_allow_html=True)
-        elif prediction[0] == 0:
-            st.write(f"The model predicts that <span style='color: #00ff00;'>{away_team}</span> will win against <span style='color: red;'>{home_team}</span>.", unsafe_allow_html=True)
 
-with col5:
-    away_logo_path = get_logo_path(away_team)
-    if os.path.exists(away_logo_path):
-        away_logo = resize_logo(away_logo_path, max_size)
-        st.image(away_logo, use_column_width=True)
-    else:
-        st.write(f"Logo not found for {away_team}")
-    st.write(f"**{away_team}**")
+# Display the prediction statement
+if 'prediction' in locals():
+    if prediction[0] == 1:
+        st.write(f"The model predicts that <span style='color: #00ff00;'>{home_team}</span> will win against <span style='color: red;'>{away_team}</span>.", unsafe_allow_html=True)
+    elif prediction[0] == 2:
+        st.write(f"The model predicts a <span style='color: grey;'>draw</span> between <span style='color: grey;'>{home_team}</span> and <span style='color: grey;'>{away_team}</span>.", unsafe_allow_html=True)
+    elif prediction[0] == 0:
+        st.write(f"The model predicts that <span style='color: #00ff00;'>{away_team}</span> will win against <span style='color: red;'>{home_team}</span>.", unsafe_allow_html=True)
