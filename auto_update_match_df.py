@@ -213,12 +213,25 @@ try:
     columns_to_drop1 = ['Attendance_home', 'Attendance_away', 'Round_away', 'Formation_home', 'Formation_away']
     combined_df.drop(columns=columns_to_drop1, inplace=True)
     combined_df['Round_home'] = combined_df['Round_home'].str.extract('(\d+)').astype(int)
-    
-    # Save the preprocessed data with Outcome_encoded to a CSV file
     combined_csv_file = 'ELO_df.csv'
     print(f"Saving data to {combined_csv_file}...")
     logging.info(f"Saving data to {combined_csv_file}")
-    combined_df.to_csv(combined_csv_file, index=False)
+
+    if os.path.isfile(combined_csv_file):
+        print(f"{combined_csv_file} already exists. Appending new data...")
+        logging.info(f"{combined_csv_file} already exists. Appending new data.")
+        
+        # Read the existing data from the CSV file
+        existing_data = pd.read_csv(combined_csv_file)
+        
+        # Append the new data to the existing data
+        updated_data = pd.concat([existing_data, combined_df], ignore_index=True)
+        
+        # Save the updated data back to the CSV file
+        updated_data.to_csv(combined_csv_file, index=False, mode='w', header=True)
+    else:
+        # If the file doesn't exist, create a new file and save the data
+        combined_df.to_csv(combined_csv_file, index=False)
     
     print(f"Data saved to {combined_csv_file}")
     logging.info(f"Data saved to {combined_csv_file}")
