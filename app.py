@@ -3,6 +3,7 @@ import pandas as pd
 import joblib
 from team_features import home_team_features, away_team_features
 import sklearn
+import requests
 
 # Load the trained model and the dataset
 model = joblib.load('finalized_model2.pkl')
