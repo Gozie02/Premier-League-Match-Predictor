@@ -81,7 +81,7 @@ logo_size = (120, 120)
 col1, col2, col3 = st.columns([1, 0.5, 1])
 
 with col1:
-    home_team = st.selectbox("Select Home Team", sorted(teams))
+    home_team = st.selectbox("Select Home Team", sorted(all_teams))
     home_logo_path = get_logo_path(home_team)
     if os.path.exists(home_logo_path):
         home_logo = resize_logo(home_logo_path, logo_size)
@@ -95,7 +95,7 @@ with col2:
     st.write("##")  # Add vertical space
 
 with col3:
-    away_team = st.selectbox("Select Away Team", sorted(teams))
+    away_team = st.selectbox("Select Away Team", sorted(all_teams))
     away_logo_path = get_logo_path(away_team)
     if os.path.exists(away_logo_path):
         away_logo = resize_logo(away_logo_path, logo_size)
