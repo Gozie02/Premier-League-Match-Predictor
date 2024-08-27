@@ -120,7 +120,7 @@ if st.button("Predict Match Outcome"):
     prediction = model.predict(match_data)
     
     if prediction[0] == 1:
-    st.write(f"The model predicts that <span style='color: green;'>{home_team}</span> will win against <span style='color: red;'>{away_team}</span>.", unsafe_allow_html=True)
+        st.write(f"The model predicts that <span style='color: green;'>{home_team}</span> will win against <span style='color: red;'>{away_team}</span>.", unsafe_allow_html=True)
     elif prediction[0] == 2:
         st.write(f"The model predicts a <span style='color: grey;'>draw</span> between <span style='color: grey;'>{home_team}</span> and <span style='color: grey;'>{away_team}</span>.", unsafe_allow_html=True)
     elif prediction[0] == 0:
