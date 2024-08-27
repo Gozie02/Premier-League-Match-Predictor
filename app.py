@@ -55,10 +55,12 @@ def prepare_input_data(home_team, away_team):
 
 col1, col2, col3 = st.columns(3)
 
+col1, col2, col3 = st.columns(3)
+
 with col1:
-    home_logo = fetch_team_logo(home_team)
-    if home_logo is not None:
-        st.image(home_logo, width=200)
+    home_logo_path = get_logo_path(home_team)
+    if os.path.exists(home_logo_path):
+        st.image(home_logo_path, width=200)
     else:
         st.write(f"Logo not found for {home_team}")
     st.write(f"**{home_team}**")
@@ -69,13 +71,13 @@ with col2:
     st.write("**VS**")
 
 with col3:
-    away_logo = fetch_team_logo(away_team)
-    if away_logo is not None:
-        st.image(away_logo, width=200)
+    away_logo_path = get_logo_path(away_team)
+    if os.path.exists(away_logo_path):
+        st.image(away_logo_path, width=200)
     else:
         st.write(f"Logo not found for {away_team}")
     st.write(f"**{away_team}**")
-
+    
 # Predict Button
 if st.button("Predict Match Outcome"):
     # Prepare the input data using the selected teams
