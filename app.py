@@ -79,7 +79,7 @@ st.write("##")
 col1, col2 = st.columns(2)
 
 with col1:
-    home_team = st.selectbox("Select Home Team", sorted(teams))
+    home_team = st.selectbox("Select Home Team", sorted(all_teams))
     home_logo_path = get_logo_path(home_team)
     if os.path.exists(home_logo_path):
         home_logo = resize_logo(home_logo_path, (120, 120))
@@ -88,7 +88,7 @@ with col1:
         st.write(f"Logo not found for {home_team}")
 
 with col2:
-    away_team = st.selectbox("Select Away Team", sorted(teams))
+    away_team = st.selectbox("Select Away Team", sorted(all_teams))
     away_logo_path = get_logo_path(away_team)
     if os.path.exists(away_logo_path):
         away_logo = resize_logo(away_logo_path, (120, 120))
