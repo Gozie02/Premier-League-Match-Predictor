@@ -26,14 +26,9 @@ final_df = final_df.astype({'Home_Team_Elo_Before': 'float', 'Away_Team_Elo_Befo
 csv_file = 'final_df_organized.csv'
 print(f"Saving data to {csv_file}...")
 logging.info(f"Saving data to {csv_file}")
-if os.path.isfile(csv_file):
-  existing_data = pd.read_csv(csv_file)
-  updated_data = pd.concat([existing_data, final_df], ignore_index=True)
-  updated_data.to_csv(csv_file, index=False)
-else:
-  final_df.to_csv(csv_file, index=False)
-  print(f"Data saved to {csv_file}")
-  logging.info(f"Data saved to {csv_file}")
+final_df.to_csv(csv_file, index=False)
+print(f"Data saved to {csv_file}")
+logging.info(f"Data saved to {csv_file}")
 
 all_teams = pd.concat([final_df['Home_Team_home'], final_df['Away_Team_home']]).unique()
 home_df = pd.DataFrame({'Home_Team_home': all_teams})
@@ -44,7 +39,6 @@ final_df1 = pd.concat([final_df, home_dummies, away_dummies], axis=1)
 
 # Drop the original team columns
 final_df1 = final_df1.drop(['Home_Team_home', 'Away_Team_home'], axis=1)
-final_df1 = pd.get_dummies(final_df, columns=['Home_Team_home', 'Away_Team_home'], prefix=['home', 'away'], dtype = 'int')
 final_df_test = final_df1._get_numeric_data()
 final_df_test = final_df_test.loc[:,~final_df_test.columns.duplicated()]
 final_df_modeling = final_df_test.drop(['Outcome_encoded_away', 'GF_Home_away', 'GF_Away_away'], axis = 1)
@@ -59,12 +53,7 @@ print(final_df_features.head())
 csv_file_with_outcome = 'model_training.csv'
 print(f"Saving data to {csv_file_with_outcome}...")
 logging.info(f"Saving data to {csv_file_with_outcome}")
-if os.path.isfile(csv_file_with_outcome):
-    existing_data_with_outcome = pd.read_csv(csv_file_with_outcome)
-    updated_data_with_outcome = pd.concat([existing_data_with_outcome, final_df_modeling], ignore_index=True)
-    updated_data_with_outcome.to_csv(csv_file_with_outcome, index=False)
-else:
-    final_df_modeling.to_csv(csv_file_with_outcome, index=False)
+final_df_modeling.to_csv(csv_file_with_outcome, index=False)
 
 print(f"Data saved to {csv_file_with_outcome}")
 logging.info(f"Data saved to {csv_file_with_outcome}")
@@ -72,14 +61,9 @@ logging.info(f"Data saved to {csv_file_with_outcome}")
 csv_file_without_outcome = 'final_df_features.csv'
 print(f"Saving data to {csv_file_without_outcome}...")
 logging.info(f"Saving data to {csv_file_without_outcome}")
-if os.path.isfile(csv_file_without_outcome):
-    existing_data_without_outcome = pd.read_csv(csv_file_without_outcome)
-    updated_data_without_outcome = pd.concat([existing_data_without_outcome, final_df_features], ignore_index=True)
-    updated_data_without_outcome.to_csv(csv_file_without_outcome, index=False)
-else:
-    final_df_features.to_csv(csv_file_without_outcome, index=False)
-    print(f"Data saved to {csv_file_without_outcome}")
-    logging.info(f"Data saved to {csv_file_without_outcome}")
+final_df_features.to_csv(csv_file_without_outcome, index=False)
+print(f"Data saved to {csv_file_without_outcome}")
+logging.info(f"Data saved to {csv_file_without_outcome}")
 
 def run_script():
     exec(open("ELO_auto_updater.py").read())
