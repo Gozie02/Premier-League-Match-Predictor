@@ -21,9 +21,9 @@ model_feature_names = all_data.columns.tolist()
 def get_logo_path(team_name):
     return os.path.join("team_logos", f"{team_name}.png")
 
-def resize_logo(logo_path, max_size):
+def resize_logo(logo_path, size):
     logo = Image.open(logo_path)
-    logo.thumbnail(max_size)
+    logo = logo.resize(size)
     return logo
 
 def set_background_and_text_color(color1, color2, text_color):
@@ -76,13 +76,15 @@ st.markdown(f"<h1 style='color: {header_color};'>Football Match Outcome Predicto
 # Add some vertical space between the header and team logos
 st.write("##")
 
+logo_size = (120, 120)
+
 col1, col2 = st.columns(2)
 
 with col1:
     home_team = st.selectbox("Select Home Team", sorted(all_teams))
     home_logo_path = get_logo_path(home_team)
     if os.path.exists(home_logo_path):
-        home_logo = resize_logo(home_logo_path, (120, 120))
+        home_logo = resize_logo(home_logo_path, logo_size)
         st.image(home_logo, use_column_width=True)
     else:
         st.write(f"Logo not found for {home_team}")
@@ -91,7 +93,7 @@ with col2:
     away_team = st.selectbox("Select Away Team", sorted(all_teams))
     away_logo_path = get_logo_path(away_team)
     if os.path.exists(away_logo_path):
-        away_logo = resize_logo(away_logo_path, (120, 120))
+        away_logo = resize_logo(away_logo_path, logo_size)
         st.image(away_logo, use_column_width=True)
     else:
         st.write(f"Logo not found for {away_team}")
