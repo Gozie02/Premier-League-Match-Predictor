@@ -18,9 +18,6 @@ all_teams = sorted(set(home_teams + away_teams))
 # Get the list of feature names used during training
 model_feature_names = all_data.columns.tolist()
 
-# Streamlit App
-st.title("Football Match Outcome Predictor")
-
 # Sidebar for team selection
 st.sidebar.header("Select Teams")
 home_team = st.sidebar.selectbox("Home Team", all_teams)
@@ -88,7 +85,7 @@ st.write("##")
 max_size = (180, 180)
 
 # Display team logos and names
-col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
+col1, col2, col3, col4, col5 = st.columns([1, 1, 1.2, 1, 1])
 
 with col1:
     home_logo_path = get_logo_path(home_team)
