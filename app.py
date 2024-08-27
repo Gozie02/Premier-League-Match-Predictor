@@ -78,7 +78,12 @@ def prepare_input_data(home_team, away_team):
     
     return match_data
 
-# Set the maximum size for the logo images
+header_color = "#ff8c00"  # Orange color for the header
+st.markdown(f"<h1 style='color: {header_color};'>Football Match Outcome Predictor</h1>", unsafe_allow_html=True)
+
+# Add some vertical space between the header and team logos
+st.write("##")
+
 # Set the maximum size for the logo images
 max_size = (180, 180)
 
