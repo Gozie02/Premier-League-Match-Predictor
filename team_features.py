@@ -1,7 +1,7 @@
 ##Final DF Grouping
 import pandas as pd
 final_df12 = pd.read_csv('final_df_organized.csv')
-final_df12 = final_df12.drop(['Unnamed: 0', 'GF_Home_away', 'Outcome_encoded_away', 'GF_Away_away'], axis = 1)
+final_df12 = final_df12.drop(['GF_Home_away', 'Outcome_encoded_away', 'GF_Away_away'], axis = 1)
 # Group the data by home team and aggregate the features
 last_value_columns = ['Round_x', 'Home_Team_Avg_GF_Home_home_Last_7', 'Home_Team_Avg_GF_Away_home_Last_7',
  'Home_Team_Avg_xG_x_home_Last_7', 'Home_Team_Avg_xGA_home_Last_7',
