@@ -4,6 +4,7 @@ import joblib
 from team_features import home_team_features, away_team_features
 import sklearn
 import os
+from PIL import Image
 
 # Load the trained model and the dataset
 model = joblib.load('finalized_model2.pkl')
@@ -27,6 +28,11 @@ away_team = st.sidebar.selectbox("Away Team", all_teams)
 
 def get_logo_path(team_name):
     return os.path.join("team_logos", f"{team_name}.png")
+
+def resize_logo(logo_path, max_size):
+    logo = Image.open(logo_path)
+    logo.thumbnail(max_size)
+    return logo
 
 # Function to prepare the input data with one-hot encoding and additional features
 def prepare_input_data(home_team, away_team):
@@ -53,14 +59,15 @@ def prepare_input_data(home_team, away_team):
     
     return match_data
 
-col1, col2, col3 = st.columns(3)
+max_size = (180, 180)
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
     home_logo_path = get_logo_path(home_team)
     if os.path.exists(home_logo_path):
-        st.image(home_logo_path, width=200)
+        home_logo = resize_logo(home_logo_path, max_size)
+        st.image(home_logo, use_column_width=True)
     else:
         st.write(f"Logo not found for {home_team}")
     st.write(f"**{home_team}**")
@@ -73,7 +80,8 @@ with col2:
 with col3:
     away_logo_path = get_logo_path(away_team)
     if os.path.exists(away_logo_path):
-        st.image(away_logo_path, width=200)
+        away_logo = resize_logo(away_logo_path, max_size)
+        st.image(away_logo, use_column_width=True)
     else:
         st.write(f"Logo not found for {away_team}")
     st.write(f"**{away_team}**")
