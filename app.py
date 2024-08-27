@@ -18,11 +18,6 @@ all_teams = sorted(set(home_teams + away_teams))
 # Get the list of feature names used during training
 model_feature_names = all_data.columns.tolist()
 
-# Sidebar for team selection
-st.sidebar.header("Select Teams")
-home_team = st.sidebar.selectbox("Home Team", all_teams)
-away_team = st.sidebar.selectbox("Away Team", all_teams)
-
 def get_logo_path(team_name):
     return os.path.join("team_logos", f"{team_name}.png")
 
@@ -81,39 +76,41 @@ st.markdown(f"<h1 style='color: {header_color};'>Football Match Outcome Predicto
 # Add some vertical space between the header and team logos
 st.write("##")
 
-# Set the maximum size for the logo images
-max_size = (180, 180)
-
-# Display team logos and names
-col1, col2, col3, col4, col5 = st.columns([1, 1, 1.2, 1, 1])
+col1, col2 = st.columns(2)
 
 with col1:
+    home_team = st.selectbox("Select Home Team", sorted(teams))
     home_logo_path = get_logo_path(home_team)
     if os.path.exists(home_logo_path):
-        home_logo = resize_logo(home_logo_path, max_size)
+        home_logo = resize_logo(home_logo_path, (120, 120))
         st.image(home_logo, use_column_width=True)
     else:
         st.write(f"Logo not found for {home_team}")
-    st.write(f"**{home_team}**")
 
-with col3:
-    st.write("##")
-    st.write("##")
-    st.write("**VS**")
-
-with col5:
+with col2:
+    away_team = st.selectbox("Select Away Team", sorted(teams))
     away_logo_path = get_logo_path(away_team)
     if os.path.exists(away_logo_path):
-        away_logo = resize_logo(away_logo_path, max_size)
+        away_logo = resize_logo(away_logo_path, (120, 120))
         st.image(away_logo, use_column_width=True)
     else:
         st.write(f"Logo not found for {away_team}")
-    st.write(f"**{away_team}**")
 
-# Create columns for the prediction button and result
-col1, col2, col3 = st.columns([1, 2, 1])
+# Add some vertical space
+st.write("##")
 
+# Display VS text between the team logos
+col1, col2, col3 = st.columns([1, 0.5, 1])
 with col2:
+    st.write("**VS**")
+
+# Add some vertical space
+st.write("##")
+
+# Create a centered column for the prediction button
+col = st.columns(1)[0]
+
+with col:
     if st.button("Predict Match Outcome"):
         # Prepare the input data using the selected teams
         match_data = prepare_input_data(home_team, away_team)
