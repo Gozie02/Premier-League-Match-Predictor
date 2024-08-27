@@ -119,11 +119,12 @@ if st.button("Predict Match Outcome"):
     # Make the prediction
     prediction = model.predict(match_data)
     
+    # Interpret and display prediction with color coding
     if prediction[0] == 1:
-        st.write(f"The model predicts that <span style='color: green;'>{home_team}</span> will win against <span style='color: red;'>{away_team}</span>.", unsafe_allow_html=True)
+        st.write(f"The model predicts that <span style='color: #00ff00;'>{home_team}</span> will win against <span style='color: red;'>{away_team}</span>.", unsafe_allow_html=True)
     elif prediction[0] == 2:
         st.write(f"The model predicts a <span style='color: grey;'>draw</span> between <span style='color: grey;'>{home_team}</span> and <span style='color: grey;'>{away_team}</span>.", unsafe_allow_html=True)
     elif prediction[0] == 0:
-        st.write(f"The model predicts that <span style='color: green;'>{away_team}</span> will win against <span style='color: red;'>{home_team}</span>.", unsafe_allow_html=True)
+        st.write(f"The model predicts that <span style='color: #00ff00;'>{away_team}</span> will win against <span style='color: red;'>{home_team}</span>.", unsafe_allow_html=True)
 else:
     st.write("Please select the home and away teams and click the 'Predict Match Outcome' button.")
