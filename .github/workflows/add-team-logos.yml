@@ -1,0 +1,60 @@
+name: Add Team Logos
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  add-team-logos:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Download team logos
+      run: |
+        mkdir -p team_logos
+        # Download logo images and save them in the team_logos directory
+        # Replace the URLs with the actual URLs of your team logo images
+        curl -o team_logos/Arsenal.png https://download.logo.wine/logo/Arsenal_F.C./Arsenal_F.C.-Logo.wine.png
+        curl -o team_logos/Aston Villa.png https://logos-world.net/wp-content/uploads/2020/07/Aston-Villa-Logo.png
+        curl -o team_logos/Bournemouth.png https://logodownload.org/wp-content/uploads/2019/10/bournemouth-fc-logo-1.png
+        curl -o team_logos/Brentford.png https://upload.wikimedia.org/wikipedia/en/thumb/2/2a/Brentford_FC_crest.svg/1200px-Brentford_FC_crest.svg.png
+        curl -o team_logos/Brighton & Hove Albion.png https://logodownload.org/wp-content/uploads/2019/10/brighton-hove-albion-logo.png
+        curl -o team_logos/Burnley.png https://1000logos.net/wp-content/uploads/2018/06/Burnley-logo.png
+        curl -o team_logos/Chelsea.png https://upload.wikimedia.org/wikipedia/sco/thumb/c/cc/Chelsea_FC.svg/2048px-Chelsea_FC.svg.png
+        curl -o team_logos/Crystal Palace.png https://1000logos.net/wp-content/uploads/2023/04/Crystal-Palace-logo.png
+        curl -o team_logos/Everton.png https://upload.wikimedia.org/wikipedia/commons/6/64/Everton-Logo.png
+        curl -o team_logos/Fulham.png https://cdn.freebiesupply.com/logos/large/2x/fulham-fc-1-logo-png-transparent.png
+        curl -o team_logos/Ipswich Town.png https://cdn.freebiesupply.com/logos/large/2x/ipswich-town-fc-logo-png-transparent.png
+        curl -o team_logos/Leeds United.png https://careers-in-sport.co.uk/wp-content/uploads/2021/03/leeds-united-afc-3-logo-png-transparent.png
+        curl -o team_logos/Leicester City.png https://logodownload.org/wp-content/uploads/2019/05/leicester-city-logo.png
+        curl -o team_logos/Liverpool.png https://1000logos.net/wp-content/uploads/2017/04/Logo-Liverpool.png
+        curl -o team_logos/Luton Town.png https://upload.wikimedia.org/wikipedia/fr/thumb/9/94/Logo_Luton_Town_2009_FC.svg/1200px-Logo_Luton_Town_2009_FC.svg.png
+        curl -o team_logos/Manchester City.png https://logodownload.org/wp-content/uploads/2017/02/manchester-city-fc-logo-escudo-badge.png
+        curl -o team_logos/Manchester United.png https://download.logo.wine/logo/Manchester_United_F.C./Manchester_United_F.C.-Logo.wine.png
+        curl -o team_logos/Newcastle United.png https://logos-world.net/wp-content/uploads/2020/06/Newcastle-Logo.png
+        curl -o team_logos/Norwich City.png https://logodownload.org/wp-content/uploads/2019/10/norwich-fc-logo-1.png
+        curl -o team_logos/Nottingham Forest.png https://cdn.freebiesupply.com/logos/large/2x/nottingham-forest-fc-logo-png-transparent.png
+        curl -o team_logos/Sheffield United.png https://cdn.freebiesupply.com/logos/large/2x/sheffield-united-fc-logo-png-transparent.png
+        curl -o team_logos/Southampton.png https://cdn.freebiesupply.com/logos/large/2x/southampton-fc-1-logo-png-transparent.png
+        curl -o team_logos/Tottenham Hotspur.png https://logos-world.net/wp-content/uploads/2020/06/Tottenham-Hotspur-symbol.png
+        curl -o team_logos/Watford.png https://1000logos.net/wp-content/uploads/2018/07/Watford-Logo-1982.png
+        curl -o team_logos/West Ham United.png https://logos-world.net/wp-content/uploads/2020/06/West-Ham-Logo.png
+        curl -o team_logos/Wolverhampton Wanderers.png https://logodownload.org/wp-content/uploads/2019/04/wolverhampton-logo-escudo.png
+        # Add more curl commands for each team logo
+
+    - name: Commit team logos
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add team_logos/
+        git commit -m "Add team logo images"
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: main
