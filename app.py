@@ -49,10 +49,6 @@ def prepare_input_data(home_team, away_team):
     column_names = list(match_features.keys())
     match_data = pd.DataFrame([match_features], columns=column_names)
     
-    # Drop the 'Unnamed: 0' column if it exists
-    if 'Unnamed: 0' in match_data.columns:
-        match_data = match_data.drop(columns=['Unnamed: 0'])
-    
     return match_data
 
 # Predict Button
