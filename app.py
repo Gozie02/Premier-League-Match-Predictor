@@ -24,8 +24,15 @@ st.sidebar.header("Select Teams")
 home_team = st.sidebar.selectbox("Home Team", all_teams)
 away_team = st.sidebar.selectbox("Away Team", all_teams)
 
+def fetch_team_logo(team_name):
+    logo_url = f"https://raw.githubusercontent.com/Gozie02/Premier-League-Match-Predictor/main/team_logos/{team_name}.png"
+    response = requests.get(logo_url)
+    if response.status_code == 200:
+        return response.content
+    else:
+        return None
 
-# Function to prepare the input data with one-hot encoding and additional features
+
 # Function to prepare the input data with one-hot encoding and additional features
 def prepare_input_data(home_team, away_team):
     match_features = {}
@@ -50,6 +57,29 @@ def prepare_input_data(home_team, away_team):
     match_data = pd.DataFrame([match_features], columns=column_names)
     
     return match_data
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    home_logo = fetch_team_logo(home_team)
+    if home_logo is not None:
+        st.image(home_logo, width=200)
+    else:
+        st.write(f"Logo not found for {home_team}")
+    st.write(f"**{home_team}**")
+
+with col2:
+    st.write("##")
+    st.write("##")
+    st.write("**VS**")
+
+with col3:
+    away_logo = fetch_team_logo(away_team)
+    if away_logo is not None:
+        st.image(away_logo, width=200)
+    else:
+        st.write(f"Logo not found for {away_team}")
+    st.write(f"**{away_team}**")
 
 # Predict Button
 if st.button("Predict Match Outcome"):
