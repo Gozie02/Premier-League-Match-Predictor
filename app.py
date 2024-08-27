@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 from team_features import home_team_features, away_team_features
 import sklearn
-import requests
+import os
 
 # Load the trained model and the dataset
 model = joblib.load('finalized_model2.pkl')
@@ -25,14 +25,8 @@ st.sidebar.header("Select Teams")
 home_team = st.sidebar.selectbox("Home Team", all_teams)
 away_team = st.sidebar.selectbox("Away Team", all_teams)
 
-def fetch_team_logo(team_name):
-    logo_url = f"https://raw.githubusercontent.com/Gozie02/Premier-League-Match-Predictor/main/team_logos/{team_name}.png"
-    response = requests.get(logo_url)
-    if response.status_code == 200:
-        return response.content
-    else:
-        return None
-
+def get_logo_path(team_name):
+    return os.path.join("team_logos", f"{team_name}.png")
 
 # Function to prepare the input data with one-hot encoding and additional features
 def prepare_input_data(home_team, away_team):
