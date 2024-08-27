@@ -12,7 +12,6 @@ all_data = pd.read_csv('final_df_features.csv')
 home_teams = [col.replace("home_", "") for col in all_data.columns if col.startswith("home_")]
 away_teams = [col.replace("away_", "") for col in all_data.columns if col.startswith("away_")]
 all_teams = sorted(set(home_teams + away_teams))
-all_data = all_data.drop(['Unnamed: 0'], axis = 1)
 
 # Get the list of feature names used during training
 model_feature_names = all_data.columns.tolist()
