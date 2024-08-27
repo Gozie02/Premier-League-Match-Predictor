@@ -78,10 +78,10 @@ st.write("##")
 
 logo_size = (120, 120)
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns([1, 0.5, 1])
 
 with col1:
-    home_team = st.selectbox("Select Home Team", sorted(all_teams))
+    home_team = st.selectbox("Select Home Team", sorted(teams))
     home_logo_path = get_logo_path(home_team)
     if os.path.exists(home_logo_path):
         home_logo = resize_logo(home_logo_path, logo_size)
@@ -90,21 +90,18 @@ with col1:
         st.write(f"Logo not found for {home_team}")
 
 with col2:
-    away_team = st.selectbox("Select Away Team", sorted(all_teams))
+    st.write("##")  # Add vertical space
+    st.write("**VS**")
+    st.write("##")  # Add vertical space
+
+with col3:
+    away_team = st.selectbox("Select Away Team", sorted(teams))
     away_logo_path = get_logo_path(away_team)
     if os.path.exists(away_logo_path):
         away_logo = resize_logo(away_logo_path, logo_size)
         st.image(away_logo, use_column_width=True)
     else:
         st.write(f"Logo not found for {away_team}")
-
-# Add some vertical space
-st.write("##")
-
-# Display VS text between the team logos
-col1, col2, col3 = st.columns([1, 0.5, 1])
-with col2:
-    st.write("**VS**")
 
 # Add some vertical space
 st.write("##")
