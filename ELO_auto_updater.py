@@ -31,10 +31,8 @@ print(f"Data saved to {csv_file}")
 logging.info(f"Data saved to {csv_file}")
 
 all_teams = pd.concat([final_df['Home_Team_home'], final_df['Away_Team_home']]).unique()
-home_df = pd.DataFrame({'Home_Team_home': all_teams})
-away_df = pd.DataFrame({'Away_Team_home': all_teams})
-home_dummies = pd.get_dummies(home_df, columns=['Home_Team_home'], prefix='home', dtype='int')
-away_dummies = pd.get_dummies(away_df, columns=['Away_Team_home'], prefix='away', dtype='int')
+home_dummies = pd.get_dummies(final_df['Home_Team_home'], prefix='home', dtype='int')
+away_dummies = pd.get_dummies(final_df['Away_Team_home'], prefix='away', dtype='int')
 final_df1 = pd.concat([final_df, home_dummies, away_dummies], axis=1)
 
 # Drop the original team columns
