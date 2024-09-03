@@ -2,7 +2,7 @@ name: Retrain Model
 
 on:
   schedule:
-    - cron: '55 20 * * 4'  # Runs every Wednesday at 8:30 AM UTC
+    - cron: '55 10 * * 3'  # Runs every Wednesday at 8:30 AM UTC
 
 jobs:
   retrain-model:
