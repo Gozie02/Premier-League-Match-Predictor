@@ -52,14 +52,14 @@ print(final_df_features.head())
 csv_file_with_outcome = 'model_training.csv'
 print(f"Saving data to {csv_file_with_outcome}...")
 logging.info(f"Saving data to {csv_file_with_outcome}")
-final_df_modeling.to_csv(csv_file, index=False)
+final_df_modeling.to_csv(csv_file_with_outcome, index=False)
 print(f"Data saved to {csv_file_with_outcome}")
 logging.info(f"Data saved to {csv_file_with_outcome}")
     
 csv_file_without_outcome = 'final_df_features.csv'
 print(f"Saving data to {csv_file_without_outcome}...")
 logging.info(f"Saving data to {csv_file_without_outcome}")
-final_df_features.to_csv(csv_file, index=False)
+final_df_features.to_csv(csv_file_without_outcome, index=False)
 print(f"Data saved to {csv_file_without_outcome}")
 logging.info(f"Data saved to {csv_file_without_outcome}")
 
