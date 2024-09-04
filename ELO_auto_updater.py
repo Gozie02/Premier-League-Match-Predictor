@@ -26,21 +26,7 @@ final_df = final_df.astype({'Home_Team_Elo_Before': 'float', 'Away_Team_Elo_Befo
 csv_file = 'final_df_organized.csv'
 print(f"Saving data to {csv_file}...")
 logging.info(f"Saving data to {csv_file}")
-
-if os.path.isfile(csv_file):
-    print(f"{csv_file} already exists. Appending new data...")
-    logging.info(f"{csv_file} already exists. Appending new data.")
-    
-    # Read the existing data from the CSV file
-    existing_data = pd.read_csv(csv_file)
-    
-    # Append the new data to the existing data
-    updated_data = pd.concat([existing_data, final_df], ignore_index=True)
-    
-    # Save the updated data back to the CSV file
-    updated_data.to_csv(csv_file, index=False, mode='w', header=True)
-else:
-    final_df.to_csv(csv_file, index=False)
+final_df.to_csv(csv_file, index=False)
   
 print(f"Data saved to {csv_file}")
 logging.info(f"Data saved to {csv_file}")
@@ -66,41 +52,14 @@ print(final_df_features.head())
 csv_file_with_outcome = 'model_training.csv'
 print(f"Saving data to {csv_file_with_outcome}...")
 logging.info(f"Saving data to {csv_file_with_outcome}")
-if os.path.isfile(csv_file_with_outcome):
-    print(f"{csv_file_with_outcome} already exists. Appending new data...")
-    logging.info(f"{csv_file_with_outcome} already exists. Appending new data.")
-    
-    # Read the existing data from the CSV file
-    existing_data = pd.read_csv(csv_file_with_outcome)
-    
-    # Append the new data to the existing data
-    updated_data = pd.concat([existing_data, final_df_modeling], ignore_index=True)
-    
-    # Save the updated data back to the CSV file
-    updated_data.to_csv(csv_file_with_outcome, index=False, mode='w', header=True)
-else:
-    final_df_modeling.to_csv(csv_file, index=False)
-
+final_df_modeling.to_csv(csv_file, index=False)
 print(f"Data saved to {csv_file_with_outcome}")
 logging.info(f"Data saved to {csv_file_with_outcome}")
     
 csv_file_without_outcome = 'final_df_features.csv'
 print(f"Saving data to {csv_file_without_outcome}...")
 logging.info(f"Saving data to {csv_file_without_outcome}")
-if os.path.isfile(csv_file_without_outcome):
-    print(f"{csv_file_without_outcome} already exists. Appending new data...")
-    logging.info(f"{csv_file_without_outcome} already exists. Appending new data.")
-    
-    # Read the existing data from the CSV file
-    existing_data = pd.read_csv(csv_file_without_outcome)
-    
-    # Append the new data to the existing data
-    updated_data = pd.concat([existing_data, final_df_features], ignore_index=True)
-    
-    # Save the updated data back to the CSV file
-    updated_data.to_csv(csv_file_without_outcome, index=False, mode='w', header=True)
-else:
-    final_df_features.to_csv(csv_file, index=False)
+final_df_features.to_csv(csv_file, index=False)
 print(f"Data saved to {csv_file_without_outcome}")
 logging.info(f"Data saved to {csv_file_without_outcome}")
 
