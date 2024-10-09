@@ -4,12 +4,12 @@ import math
 
 # Function to calculate win probabilities
 def win_probs(home_elo, away_elo, home_court_advantage=50):
-    h = math.pow(10, home_elo / 400)
-    r = math.pow(10, away_elo / 400)
-    a = math.pow(10, home_court_advantage / 400)
-    denom = r + a * h
-    home_prob = a * h / denom
-    away_prob = r / denom
+    home_elo_rating = math.pow(10, home_elo / 400)
+    away_elo_rating = math.pow(10, away_elo / 400)
+    home_advantage_factor = math.pow(10, home_court_advantage / 400)
+    denom = away_elo_rating + home_advantage_factor * home_elo_rating
+    home_prob = home_advantage_factor * home_elo_rating / denom
+    away_prob = away_elo_rating / denom
     return home_prob, away_prob
 
 # Function to calculate K-factor
