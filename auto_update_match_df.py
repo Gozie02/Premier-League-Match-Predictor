@@ -209,6 +209,7 @@ try:
     away_df.sort_values(by='Date', inplace=True)
     away_df.reset_index(inplace=True, drop=True)
     combined_df = pd.merge(home_df, away_df, on='Match_ID', suffixes=('_home', '_away'), how = "outer")
+    combined_df = combined_df.dropna()
     combined_df = combined_df.astype({'GF_Home_home': 'int', 'GF_Away_home': 'int', 'GF_Home_away': 'int', 'GF_Away_away': 'int'})
     columns_to_drop1 = ['Attendance_home', 'Attendance_away', 'Round_away', 'Formation_home', 'Formation_away']
     combined_df.drop(columns=columns_to_drop1, inplace=True)
