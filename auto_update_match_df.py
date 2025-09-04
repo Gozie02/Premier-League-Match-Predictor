@@ -1,5 +1,6 @@
 import time
 import requests
+import cloudscraper
 from bs4 import BeautifulSoup
 import pandas as pd
 import schedule
@@ -24,11 +25,12 @@ this_tuesday = last_tuesday + datetime.timedelta(days=7)  # Upcoming Wednesday
 # Convert to string format (YYYY-MM-DD) for comparison
 last_tuesday_str = last_tuesday.strftime('%Y-%m-%d')
 this_tuesday_str = this_tuesday.strftime('%Y-%m-%d')
-current_year = 2024  # Update this to the current Premier League season
+current_year = 2025  # Update this to the current Premier League season
 PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
 matches = []
 
-seasons = requests.get(PL_History)
+scraper = cloudscraper.create_scraper()
+seasons = scraper.get(PL_History)
 soup = BeautifulSoup(seasons.text, 'html.parser')
 time.sleep(3)
 standings_table = soup.select('table.stats_table')[0]
