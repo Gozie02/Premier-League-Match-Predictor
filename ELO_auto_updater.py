@@ -18,8 +18,7 @@ combined_with_performance_unique = combined_with_performance_renamed.drop_duplic
 final_elos_unique = final_elos.drop_duplicates(subset=['Match_ID'])
 final_df = pd.merge(combined_with_performance_unique, final_elos_unique, on='Match_ID', how='left')
 final_df = final_df.drop(columns=['Match_ID'])
-final_columns_to_drop = ['Unnamed: 0', 'Home_Team_x', 'Away_Team_x', 'Home_Team_y', 'Away_Team_y', 'Date_away', 'Time_away', 'Day_away', 'Referee_away', 'Round_y', 'Season_y', 'Date_y',
-                     'Referee_home']
+final_columns_to_drop = ['Date_away', 'Time_away', 'Day_away', 'Referee_away', 'Round_y', 'Season_y', 'Date_y', 'Referee_home']
 final_df.drop(columns=final_columns_to_drop, inplace=True)
 final_df = final_df.loc[:,~final_df.columns.duplicated()]
 final_df = final_df.astype({'Home_Team_Elo_Before': 'float', 'Away_Team_Elo_Before': 'float'})
