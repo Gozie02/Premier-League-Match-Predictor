@@ -1,4 +1,5 @@
 from scipy.stats import poisson
+import numpy as np
 # --------------------------------------------------------
 # Probability utilities
 # --------------------------------------------------------
