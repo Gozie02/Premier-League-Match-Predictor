@@ -7,7 +7,7 @@ import os
 from PIL import Image
 
 # Load the trained model and the dataset
-model = joblib.load('finalized_model2.pkl')
+outcome_model = joblib.load('finalized_model2.pkl')
 all_data = pd.read_csv('final_df_features.csv')
 
 # Extract unique team names from the dataset
@@ -121,13 +121,13 @@ with col:
         match_data = match_data.reindex(columns=model_feature_names)
         
         # Make the prediction
-        prediction = model.predict(match_data)
+        prediction = outcome_model.predict(match_data)
 
 # Display the prediction statement
 if 'prediction' in locals():
     if prediction[0] == 1:
-        st.write(f"The model predicts that <span style='color: #00ff00;'>{home_team}</span> will win against <span style='color: red;'>{away_team}</span>.", unsafe_allow_html=True)
+        st.write(f"Nostradamus predicts that <span style='color: #00ff00;'>{home_team}</span> will win against <span style='color: red;'>{away_team}</span>.", unsafe_allow_html=True)
     elif prediction[0] == 2:
-        st.write(f"The model predicts a <span style='color: grey;'>draw</span> between <span style='color: grey;'>{home_team}</span> and <span style='color: grey;'>{away_team}</span>.", unsafe_allow_html=True)
+        st.write(f"Nostradamus predicts a <span style='color: grey;'>draw</span> between <span style='color: grey;'>{home_team}</span> and <span style='color: grey;'>{away_team}</span>.", unsafe_allow_html=True)
     elif prediction[0] == 0:
-        st.write(f"The model predicts that <span style='color: #00ff00;'>{away_team}</span> will win against <span style='color: red;'>{home_team}</span>.", unsafe_allow_html=True)
+        st.write(f"Nostradamus predicts that <span style='color: #00ff00;'>{away_team}</span> will win against <span style='color: red;'>{home_team}</span>.", unsafe_allow_html=True)
