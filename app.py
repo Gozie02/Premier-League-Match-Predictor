@@ -89,7 +89,7 @@ with col1:
     home_logo_path = get_logo_path(home_team)
     if os.path.exists(home_logo_path):
         home_logo = resize_logo(home_logo_path, logo_size)
-        st.image(home_logo, use_column_width=True)
+        st.image(home_logo, use_container_width=True)
     else:
         st.write(f"Logo not found for {home_team}")
 
@@ -103,7 +103,7 @@ with col3:
     away_logo_path = get_logo_path(away_team)
     if os.path.exists(away_logo_path):
         away_logo = resize_logo(away_logo_path, logo_size)
-        st.image(away_logo, use_column_width=True)
+        st.image(away_logo, use_container_width=True)
     else:
         st.write(f"Logo not found for {away_team}")
 
