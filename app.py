@@ -6,8 +6,11 @@ import sklearn
 import os
 from PIL import Image
 
-# Load the trained model and the dataset
+# Load the trained models and the dataset
 outcome_model = joblib.load('finalized_model2.pkl')
+home_goals_model = joblib.load('home_goals_model.pkl')
+away_goals_model = joblib.load('away_goals_model.pkl')
+
 all_data = pd.read_csv('final_df_features.csv')
 
 # Extract unique team names from the dataset
@@ -122,6 +125,13 @@ with col:
         
         # Make the prediction
         prediction = outcome_model.predict(match_data)
+        
+        goals_df = match_data.drop(['GF_Home_home', 'GF_Home_away'], axis = 1)
+        # Predict goals (regressors)
+        home_goals_pred = home_goals_model.predict(goals_df)[0]
+        away_goals_pred = away_goals_model.predict(goals_df)[0]
+        prob_dict = derive_probabilities(home_goals_pred, away_goals_pred)
+
 
 # Display the prediction statement
 if 'prediction' in locals():
@@ -131,3 +141,11 @@ if 'prediction' in locals():
         st.write(f"Nostradamus predicts a <span style='color: grey;'>draw</span> between <span style='color: grey;'>{home_team}</span> and <span style='color: grey;'>{away_team}</span>.", unsafe_allow_html=True)
     elif prediction[0] == 0:
         st.write(f"Nostradamus predicts that <span style='color: #00ff00;'>{away_team}</span> will win against <span style='color: red;'>{home_team}</span>.", unsafe_allow_html=True)
+
+    st.subheader("Goals Expectation")
+    # Display goals prediction
+    st.write(f"{home_team}: {home_goals_pred:.2f} | {away_team}: {away_goals_pred:.2f}")
+    st.subheader("Over/Under Probabilities")
+    st.write(f"Over 1.5: {prob_dict['over_1.5']:.2%} | Under 1.5: {prob_dict['under_1.5']:.2%}")
+    st.write(f"Over 2.5: {prob_dict['over_2.5']:.2%} | Under 2.5: {prob_dict['under_2.5']:.2%}")
+    st.write(f"Over 3.5: {prob_dict['over_3.5']:.2%} | Under 3.5: {prob_dict['under_3.5']:.2%}")
