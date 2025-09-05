@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 from team_features import home_team_features, away_team_features
+from goals_calculator import poisson_probs, derive_probabilities
 import sklearn
 import os
 from PIL import Image
