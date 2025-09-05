@@ -128,7 +128,7 @@ with col:
         prediction = outcome_model.predict(match_data)
         
         # Predict goals (regressors)
-        goals_df = match_data.drop(['GF_Home_home', 'GF_Home_away'], axis = 1)
+        goals_df = match_data.drop(['GF_Home_home', 'GF_Away_home'], axis = 1)
         home_goals_pred = home_goals_model.predict(goals_df)[0]
         away_goals_pred = away_goals_model.predict(goals_df)[0]
         prob_dict = derive_probabilities(home_goals_pred, away_goals_pred)
