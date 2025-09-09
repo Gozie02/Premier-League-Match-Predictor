@@ -215,7 +215,7 @@ try:
     combined_df = combined_df.astype({'GF_Home_home': 'int', 'GF_Away_home': 'int', 'GF_Home_away': 'int', 'GF_Away_away': 'int'})
     columns_to_drop1 = ['Attendance_home', 'Attendance_away', 'Round_away', 'Formation_home', 'Formation_away']
     combined_df.drop(columns=columns_to_drop1, inplace=True)
-    combined_df['Round_home'] = combined_df['Round_home'].str.extract('(\d+)').astype(int)
+    combined_df['Round_home'] = combined_df['Round_home'].str.extract(r'(\d+)').astype(int)
     combined_csv_file = 'ELO_df.csv'
     print(f"Saving data to {combined_csv_file}...")
     logging.info(f"Saving data to {combined_csv_file}")
