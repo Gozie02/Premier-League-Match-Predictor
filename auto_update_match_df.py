@@ -29,8 +29,17 @@ current_year = 2025  # Update this to the current Premier League season
 PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
 matches = []
 
-scraper = cloudscraper.create_scraper()
-seasons = scraper.get(PL_History)
+scraper = cloudscraper.create_scraper(
+    browser={'custom': 'chrome', 'platform': 'windows', 'desktop': True}
+)
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/127.0.0.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+seasons = scraper.get(PL_History, headers=headers)
 soup = BeautifulSoup(seasons.text, 'html.parser')
 time.sleep(3)
 standings_table = soup.select('table.stats_table')[0]
