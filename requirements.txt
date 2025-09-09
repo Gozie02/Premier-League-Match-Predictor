@@ -2,3 +2,10 @@ pandas
 scikit-learn
 joblib
 streamlit
+cloudscraper
+requests
+beautifulsoup4
+schedule
+numpy
+lxml
+html5lib
