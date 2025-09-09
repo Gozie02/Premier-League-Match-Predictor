@@ -3,6 +3,8 @@ name: Update PL Matches
 on:
   schedule:
     - cron: '30 09 * * 2'  
+  workflow_dispatch: 
+  
 jobs:
   build:
     runs-on: ubuntu-latest
