@@ -146,6 +146,12 @@ if 'prediction' in locals():
     st.subheader("Goals Expectation")
     # Display goals prediction
     st.write(f"{home_team}: {home_goals_pred:.2f} | {away_team}: {away_goals_pred:.2f}")
+
+    st.subheader("Outcome Probabilities (from Poisson)")
+    st.write(f"🏠 {home_team} Win: {prob_dict['p_home_win']:.2%}")
+    st.write(f"🤝 Draw: {prob_dict['p_draw']:.2%}")
+    st.write(f"🛫 {away_team} Win: {prob_dict['p_away_win']:.2%}")
+
     st.subheader("Over/Under Probabilities")
     st.write(f"Over 1.5: {prob_dict['over_1.5']:.2%} | Under 1.5: {prob_dict['under_1.5']:.2%}")
     st.write(f"Over 2.5: {prob_dict['over_2.5']:.2%} | Under 2.5: {prob_dict['under_2.5']:.2%}")
