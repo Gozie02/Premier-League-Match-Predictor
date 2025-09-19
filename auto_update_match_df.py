@@ -55,7 +55,7 @@ try:
     for team_url in team_urls:
         team_name = team_url.split("/")[-1].replace("-Stats", "").replace("-", " ")
     
-        data = requests.get(team_url)
+        data = scraper.get(team_url)
     
         if data.status_code != 200:
             print(f"Failed to retrieve data for {team_name} in {current_year}. Status code: {data.status_code}")
@@ -76,7 +76,7 @@ try:
             relevant_links = [l for l in links if l and identifier in l]
             if not relevant_links:
                 return None
-            data = requests.get(f"https://fbref.com{relevant_links[0]}")
+            data = scraper.get(f"https://fbref.com{relevant_links[0]}")
             time.sleep(3)
             try:
                 table = pd.read_html(data.text, match=table_name)[0]
