@@ -17,10 +17,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', date
 logging.info("Starting update_premier_league_data.py script")
 logging.info("Starting Premier League data fetch")
 today = datetime.date.today()
-offset = (today.weekday() - 1) % 7
+offset = (today.weekday() - 4) % 7
 last_tuesday = today - datetime.timedelta(days=offset)
 
-if today.weekday() == 1:  # If today is a Wednesday
+if today.weekday() == 4:  # If today is a Friday
     last_tuesday -= datetime.timedelta(days=7)
 this_tuesday = last_tuesday + datetime.timedelta(days=7)  # Upcoming Wednesday
 # Convert to string format (YYYY-MM-DD) for comparison
