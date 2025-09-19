@@ -10,6 +10,7 @@ import lxml
 import datetime
 import html5lib
 import os
+import random
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -41,7 +42,7 @@ headers = {
 }
 seasons = scraper.get(PL_History, headers=headers)
 soup = BeautifulSoup(seasons.text, 'html.parser')
-time.sleep(3)
+time.sleep(random.uniform(3,10))
 standings_table = soup.select('table.stats_table')[0]
 
 squad_links = [l.get('href') for l in standings_table.find_all('a')]
@@ -69,7 +70,7 @@ try:
         team_matches = team_matches[0]
     
         soup = BeautifulSoup(data.text, 'html.parser')
-        time.sleep(3)
+        time.sleep(random.uniform(3,10))
         links = [l.get("href") for l in soup.find_all('a')]
     
         def fetch_table(links, identifier, table_name):
@@ -77,7 +78,7 @@ try:
             if not relevant_links:
                 return None
             data = scraper.get(f"https://fbref.com{relevant_links[0]}")
-            time.sleep(3)
+            time.sleep(random.uniform(3,10))
             try:
                 table = pd.read_html(data.text, match=table_name)[0]
                 table.columns = table.columns.droplevel() if isinstance(table.columns, pd.MultiIndex) else table.columns
@@ -132,7 +133,7 @@ try:
         team_data["Season"] = current_year
         team_data["Team"] = team_name
         matches.append(team_data)
-        time.sleep(3)
+        time.sleep(random.uniform(3,10))
     
     for df in matches:
         if 'Date' in df.columns:
