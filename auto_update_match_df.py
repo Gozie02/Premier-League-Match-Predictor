@@ -33,8 +33,9 @@ matches = []
 
 async def fetch_and_parse_premier_league_data(url):
     print("Launching Playwright browser...")
+
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(headless=True, args=["--no-sandbox"])
         page = await browser.new_page(
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -44,13 +45,24 @@ async def fetch_and_parse_premier_league_data(url):
         )
 
         print(f"Navigating to {url}...")
-        await page.goto(url, wait_until="networkidle")
+
+        # Cloudflare-friendly navigation (no networkidle)
+        response = await page.goto(url, timeout=90000)  # 90 sec timeout
+        if not response or not response.ok:
+            print(f"Initial response not OK: {response}")
+        
+        # Now wait for the content
+        # FBref reliably loads this wrapper even behind Cloudflare
+        target_selector = "div.table_container, table.stats_table"
 
         try:
-            await page.wait_for_selector("table.stats_table", timeout=30000)
-            print("Page content loaded successfully.")
+            await page.wait_for_selector(target_selector, timeout=90000)
+            print("Target content loaded.")
         except Exception as e:
-            print(f"Error waiting for selector: {e}")
+            print(f"Selector didn't appear: {e}")
+            # Save screenshot for debugging
+            await page.screenshot(path="cf_debug.png")
+            raise
 
         html = await page.content()
         await browser.close()
