@@ -147,8 +147,6 @@ try:
                     return None
                 table.columns = table.columns.droplevel() if isinstance(table.columns, pd.MultiIndex) else table.columns
                 return table
-            except ValueError:
-                return None
     
         shooting = await fetch_table(links, "all_comps/shooting/", "Shooting")
         possession = await fetch_table(links, "all_comps/possession", "Possession")
