@@ -21,11 +21,32 @@ jobs:
         with: 
           python-version: '3.11'
 
+      - name: Install system dependencies for chromium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 \
+            libatk1.0-0 \
+            libatk-bridge2.0-0 \
+            libcups2 \
+            libdrm2 \
+            libxkbcommon0 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxfixes3 \
+            libxrandr2 \
+            libgbm1 \
+            libasound2
+
       - run: |
           echo "Installing dependencies without upgrading pip..."
           if [ -f requirements.txt ]; then
             pip install --no-cache-dir -r requirements.txt
           fi
+          
+      - name: Install Playwright browsers
+        run: playwright install chromium
+        
       - run: python auto_update_match_df.py
 
       - id: commit
