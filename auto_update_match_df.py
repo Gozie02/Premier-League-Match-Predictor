@@ -31,6 +31,24 @@ current_year = 2025  # Update this to the current Premier League season
 PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
 matches = []
 
+async def fetch_html(url):
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, args=["--no-sandbox"])
+        page = await browser.new_page(
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/127.0.0.0 Safari/537.36"
+            )
+        )
+
+        await page.goto(url, timeout=90000)  # No networkidle
+        await page.wait_for_selector("table, div.table_container", timeout=90000)
+
+        html = await page.content()
+        await browser.close()
+        return html
+
 async def fetch_and_parse_premier_league_data(url):
     print("Launching Playwright browser...")
 
@@ -93,44 +111,51 @@ logging.info("Fetching Premier League data")
 
 try:
     for team_url in team_urls:
-        team_name = team_url.split("/")[-1].replace("-Stats", "").replace("-", " ")
+        html = await fetch_html(team_url)
+
+        team_name = (
+            team_url.split("/")[-1]
+            .replace("-Stats", "")
+            .replace("-", " ")
+        )
     
-        data = scraper.get(team_url)
-    
-        if data.status_code != 200:
-            print(f"Failed to retrieve data for {team_name} in {current_year}. Status code: {data.status_code}")
+        # Parse fixtures table
+        try:
+            team_matches = pd.read_html(html, match="Scores & Fixtures")[0]
+        except ValueError:
+            print(f"No 'Scores & Fixtures' table found for {team_name} in {current_year}")
             continue
-        team_matches = pd.read_html(data.text, match="Scores & Fixtures")
     
-        if not team_matches:
-            print(f"No 'Fixtures' table found for {team_name} in {current_year}")
-            continue
-    
-        team_matches = team_matches[0]
-    
-        soup = BeautifulSoup(data.text, 'html.parser')
-        time.sleep(random.uniform(3,10))
+        soup = BeautifulSoup(html, "html.parser")
+
         links = [l.get("href") for l in soup.find_all('a')]
     
-        def fetch_table(links, identifier, table_name):
-            relevant_links = [l for l in links if l and identifier in l]
-            if not relevant_links:
-                return None
-            data = scraper.get(f"https://fbref.com{relevant_links[0]}")
-            time.sleep(random.uniform(3,10))
-            try:
-                table = pd.read_html(data.text, match=table_name)[0]
+        async def fetch_table(links, identifier, table_name):
+                relevant_links = [l for l in links if l and identifier in l]
+                if not relevant_links:
+                    return None
+            
+                url = f"https://fbref.com{relevant_links[0]}"
+                html = await fetch_html(url)
+            
+                try:
+                    table = pd.read_html(html, match=table_name)[0]
+                    if isinstance(table.columns, pd.MultiIndex):
+                        table.columns = table.columns.droplevel()
+                    return table
+                except ValueError:
+                    return None
                 table.columns = table.columns.droplevel() if isinstance(table.columns, pd.MultiIndex) else table.columns
                 return table
             except ValueError:
                 return None
     
-        shooting = fetch_table(links, "all_comps/shooting/", "Shooting")
-        possession = fetch_table(links, "all_comps/possession", "Possession")
-        passing = fetch_table(links, "all_comps/passing", "Passing")
-        GCA = fetch_table(links, "all_comps/gca", "GCA")
-        defense = fetch_table(links, "all_comps/defense", "Defensive Actions")
-        misc = fetch_table(links, "all_comps/misc", "Miscellaneous Stats")
+        shooting = await fetch_table(links, "all_comps/shooting/", "Shooting")
+        possession = await fetch_table(links, "all_comps/possession", "Possession")
+        passing = await fetch_table(links, "all_comps/passing", "Passing")
+        GCA = await fetch_table(links, "all_comps/gca", "GCA")
+        defense = await fetch_table(links, "all_comps/defense", "Defensive Actions")
+        misc = await fetch_table(links, "all_comps/misc", "Miscellaneous Stats")
     
         try:
             team_data = team_matches
