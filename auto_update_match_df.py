@@ -6,11 +6,12 @@ import pandas as pd
 import schedule
 import numpy as np
 import logging
-import lxml
 import datetime
 import html5lib
 import os
 import random
+import asyncio
+from playwright.async_api import async_playwright
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -30,24 +31,50 @@ current_year = 2025  # Update this to the current Premier League season
 PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
 matches = []
 
-scraper = cloudscraper.create_scraper(
-    browser={'custom': 'chrome', 'platform': 'windows', 'desktop': True}
-)
+async def fetch_and_parse_premier_league_data(url):
+    print("Launching Playwright browser...")
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page(
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/127.0.0.0 Safari/537.36"
+            )
+        )
 
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/127.0.0.0 Safari/537.36",
-    "Accept-Language": "en-US,en;q=0.9",
-}
-seasons = scraper.get(PL_History, headers=headers)
-soup = BeautifulSoup(seasons.text, 'html.parser')
-time.sleep(random.uniform(3,10))
-standings_table = soup.select('table.stats_table')[0]
+        print(f"Navigating to {url}...")
+        await page.goto(url, wait_until="networkidle")
 
-squad_links = [l.get('href') for l in standings_table.find_all('a')]
-squad_links = [l for l in squad_links if '/squads/' in l]
-team_urls = [f"https://fbref.com{l}" for l in squad_links]
+        try:
+            await page.wait_for_selector("table.stats_table", timeout=30000)
+            print("Page content loaded successfully.")
+        except Exception as e:
+            print(f"Error waiting for selector: {e}")
+
+        html = await page.content()
+        await browser.close()
+        return html
+
+
+def get_team_urls():
+    html_content = asyncio.run(fetch_and_parse_premier_league_data(PL_History))
+    soup = BeautifulSoup(html_content, "html.parser")
+
+    standings_table = soup.select("table.stats_table")
+    if not standings_table:
+        raise ValueError("Could not find the standings table. FBref may have changed layout.")
+
+    standings_table = standings_table[0]
+
+    squad_links = [l.get("href") for l in standings_table.find_all("a")]
+    squad_links = [l for l in squad_links if "/squads/" in l]
+    team_urls = [f"https://fbref.com{l}" for l in squad_links]
+
+    logging.info("Fetched Premier League data successfully.")
+    return team_urls
+    
+team_urls = get_team_urls()
 
 print("Fetching Premier League data...")
 logging.info("Fetching Premier League data")
