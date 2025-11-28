@@ -11,7 +11,7 @@ import html5lib
 import os
 import random
 import asyncio
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 # -------------------------------------------------------------------
 # Basic config / constants
@@ -44,8 +44,11 @@ PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
 # -------------------------------------------------------------------
 async def fetch_html(url: str) -> str:
     """
-    Fetch raw HTML of a URL using Playwright (Cloudflare-friendly).
+    Fetch raw HTML of a URL using Playwright (Cloudflare-friendly),
+    but only wait for DOM/network, not for 'visible' tables.
     """
+    logging.info(f"Fetching page: {url}")
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
@@ -59,8 +62,22 @@ async def fetch_html(url: str) -> str:
             )
         )
 
-        await page.goto(url, timeout=90000)
-        await page.wait_for_selector("table, div.table_container", timeout=90000)
+        try:
+            response = await page.goto(url, timeout=90000)
+            if not response or not response.ok:
+                logging.warning(f"Non-OK response for {url}: {response}")
+
+            # Prefer full network idle, but fall back to DOMContentLoaded
+            try:
+                await page.wait_for_load_state("networkidle", timeout=60000)
+            except PlaywrightTimeoutError:
+                logging.warning(f"networkidle timeout for {url}, falling back to domcontentloaded")
+                await page.wait_for_load_state("domcontentloaded", timeout=60000)
+
+        except Exception as e:
+            logging.error(f"Error navigating to {url}: {e}")
+            await browser.close()
+            raise
 
         html = await page.content()
         await browser.close()
