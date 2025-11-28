@@ -11,6 +11,7 @@ import html5lib
 import os
 import random
 import asyncio
+from io import StringIO
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 # -------------------------------------------------------------------
@@ -44,8 +45,8 @@ PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
 # -------------------------------------------------------------------
 async def fetch_html(url: str) -> str:
     """
-    Fetch raw HTML of a URL using Playwright (Cloudflare-friendly),
-    but only wait for DOM/network, not for 'visible' tables.
+    Fetch raw HTML using Playwright.
+    On timeout, log and return whatever HTML we have instead of raising.
     """
     logging.info(f"Fetching page: {url}")
 
@@ -63,26 +64,19 @@ async def fetch_html(url: str) -> str:
         )
 
         try:
-            response = await page.goto(url, timeout=90000)
-            if not response or not response.ok:
-                logging.warning(f"Non-OK response for {url}: {response}")
-
-            # Prefer full network idle, but fall back to DOMContentLoaded
-            try:
-                await page.wait_for_load_state("networkidle", timeout=60000)
-            except PlaywrightTimeoutError:
-                logging.warning(f"networkidle timeout for {url}, falling back to domcontentloaded")
-                await page.wait_for_load_state("domcontentloaded", timeout=60000)
-
+            # Use a shorter timeout and lighter wait_until mode
+            await page.goto(url, timeout=60000, wait_until="domcontentloaded")
+        except PlaywrightTimeoutError as e:
+            logging.warning(f"Timeout loading {url}: {e}. Using whatever HTML is available.")
         except Exception as e:
             logging.error(f"Error navigating to {url}: {e}")
             await browser.close()
-            raise
+            # Let caller decide what to do with None
+            return ""
 
         html = await page.content()
         await browser.close()
         return html
-
 
 async def fetch_and_parse_premier_league_data(url: str) -> str:
     """
@@ -155,16 +149,33 @@ async def fetch_table(links, identifier: str, table_name: str):
         return None
 
     url = f"https://fbref.com{relevant_links[0]}"
-    html = await fetch_html(url)
 
     try:
-        table = pd.read_html(html, match=table_name)[0]
+        html = await fetch_html(url)
+    except Exception as e:
+        logging.warning(f"Skipping table '{table_name}' for {url} due to fetch error: {e}")
+        return None
+
+    if not html:
+        logging.warning(f"No HTML content for {url} when fetching table '{table_name}'")
+        return None
+
+    try:
+        # Use StringIO to avoid FutureWarning
+        tables = pd.read_html(StringIO(html), match=table_name)
+        if not tables:
+            return None
+        table = tables[0]
         if isinstance(table.columns, pd.MultiIndex):
             table.columns = table.columns.droplevel()
         return table
     except ValueError:
+        # Table not found on this page
+        logging.warning(f"Table '{table_name}' not found at {url}")
         return None
-
+    except Exception as e:
+        logging.warning(f"Error parsing table '{table_name}' at {url}: {e}")
+        return None
 
 # -------------------------------------------------------------------
 # Helper functions used in post-processing
@@ -232,7 +243,7 @@ async def main():
 
             # Parse fixtures table
             try:
-                team_matches = pd.read_html(html, match="Scores & Fixtures")[0]
+                team_matches = pd.read_html(StringIO(html), match="Scores & Fixtures")[0]
             except ValueError:
                 print(f"No 'Scores & Fixtures' table found for {team_name} in {current_year}")
                 continue
