@@ -446,6 +446,17 @@ async def main():
             how="outer",
         )
         logging.info(f"[MERGE] combined_df before dropna: {combined_df.shape[0]}")
+
+        # NaN diagnostics before the brute-force dropna
+        na_per_col = combined_df.isna().sum().sort_values(ascending=False)
+        
+        logging.info("[NaN] Top 20 columns by missing values before dropna:")
+        for col, n_missing in na_per_col.head(20).items():
+            logging.info(f"[NaN] {col}: {n_missing} missing")
+        
+        # Optional: how many rows have *any* NaN at all?
+        rows_with_any_na = combined_df.isna().any(axis=1).sum()
+        logging.info(f"[NaN] Rows with at least one NaN: {rows_with_any_na} / {len(combined_df)}")
         combined_df = combined_df.dropna()
         logging.info(f"[MERGE] combined_df after dropna: {combined_df.shape[0]}")
 
