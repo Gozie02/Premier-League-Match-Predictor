@@ -447,6 +447,11 @@ async def main():
         )
         logging.info(f"[MERGE] combined_df before dropna: {combined_df.shape[0]}")
 
+        combined_df = combined_df.drop(
+                            columns=["Attendance_home", "Attendance_away"],
+                            errors="ignore",  # prevents KeyError if columns are missing
+                        )
+
         # NaN diagnostics before the brute-force dropna
         na_per_col = combined_df.isna().sum().sort_values(ascending=False)
         
@@ -470,8 +475,6 @@ async def main():
         )
 
         columns_to_drop1 = [
-            "Attendance_home",
-            "Attendance_away",
             "Round_away",
             "Formation_home",
             "Formation_away",
