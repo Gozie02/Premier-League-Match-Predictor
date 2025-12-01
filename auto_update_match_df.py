@@ -273,6 +273,11 @@ async def main():
                     ]
                     shooting_columns = [col for col in shooting_columns if col in shooting.columns]
                     team_data = team_data.merge(shooting[shooting_columns], on="Date", how="left")
+                    
+                    # ✅ Edge-case fix for G/SoT when SoT == 0
+                    if "G/SoT" in team_data.columns and "SoT" in team_data.columns:
+                        mask = team_data["G/SoT"].isna() & (team_data["SoT"] == 0)
+                        team_data.loc[mask, "G/SoT"] = 0.0
 
                 if possession is not None:
                     possession_columns = [
