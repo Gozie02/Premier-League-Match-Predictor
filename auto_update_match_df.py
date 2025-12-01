@@ -244,6 +244,7 @@ async def main():
             # Parse fixtures table
             try:
                 team_matches = pd.read_html(StringIO(html), match="Scores & Fixtures")[0]
+                logging.info(f"[{team_name}] Initial rows from Scores & Fixtures: {len(team_matches)}")
             except ValueError:
                 print(f"No 'Scores & Fixtures' table found for {team_name} in {current_year}")
                 continue
@@ -318,7 +319,9 @@ async def main():
                 continue
 
             # Keep only Premier League games
+            logging.info(f"[{team_name}] Rows after merging all tables: {len(team_data)}")
             team_data = team_data[team_data["Comp"] == "Premier League"]
+            logging.info(f"[{team_name}] Rows after Comp=='Premier League' filter: {len(team_data)}")
 
             # Add season and team
             team_data["Season"] = current_year
@@ -350,12 +353,17 @@ async def main():
                 )
 
         all_matches_df = pd.concat(matches, ignore_index=True)
+        logging.info(f"[GLOBAL] Total rows from all clubs before deduplication: {all_matches_df.shape[0]}")
         all_matches_df = all_matches_df.drop_duplicates(subset=["Date", "Team"], keep="first")
         all_matches_df["Date"] = all_matches_df["Date"].astype(str)
+        logging.info(f"[GLOBAL] Rows before date filter: {all_matches_df.shape[0]}")
+        logging.info(f"[GLOBAL] Date filter window: {last_tuesday_str} → {this_tuesday_str}")
+
         all_matches_df = all_matches_df[
             (all_matches_df["Date"] >= last_tuesday_str)
             & (all_matches_df["Date"] < this_tuesday_str)
         ]
+        logging.info(f"[GLOBAL] Rows after date filter: {all_matches_df.shape[0]}")
 
         all_matches_df = rename_duplicate_columns(all_matches_df)
 
@@ -428,7 +436,8 @@ async def main():
         away_df.drop(columns=["Venue"], inplace=True)
         away_df.sort_values(by="Date", inplace=True)
         away_df.reset_index(inplace=True, drop=True)
-
+        
+        logging.info(f"[MERGE] home_df: {home_df.shape[0]} rows, away_df: {away_df.shape[0]} rows")
         combined_df = pd.merge(
             home_df,
             away_df,
@@ -436,7 +445,9 @@ async def main():
             suffixes=("_home", "_away"),
             how="outer",
         )
+        logging.info(f"[MERGE] combined_df before dropna: {combined_df.shape[0]}")
         combined_df = combined_df.dropna()
+        logging.info(f"[MERGE] combined_df after dropna: {combined_df.shape[0]}")
 
         combined_df = combined_df.astype(
             {
