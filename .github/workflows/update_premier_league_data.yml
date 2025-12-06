@@ -13,6 +13,8 @@ env:
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      SCRAPERAPI_KEY: ${{ secrets.SCRAPERAPI_KEY }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0, ref: main }
@@ -46,7 +48,14 @@ jobs:
           
       - name: Install Playwright browsers
         run: playwright install chromium
-        
+
+      - name: Debug SCRAPERAPI_KEY presence
+        run: |
+          python - << 'EOF'
+          import os
+          print("SCRAPERAPI_KEY present:", bool(os.getenv("SCRAPERAPI_KEY")))
+          EOF
+          
       - run: python auto_update_match_df.py
 
       - id: commit
