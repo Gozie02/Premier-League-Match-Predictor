@@ -53,7 +53,11 @@ async def fetch_html(url: str) -> str:
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            args=["--no-sandbox"],
+            proxy={
+                "server": "http://proxy-server.scraperapi.com:8001",
+                "username": 1e31ae426bd0ac1cadc5dcdfec001970,
+                "password": ""
+            }
         )
         page = await browser.new_page(
             user_agent=(
@@ -73,7 +77,8 @@ async def fetch_html(url: str) -> str:
             await browser.close()
             # Let caller decide what to do with None
             return ""
-
+            
+        resp = await page.goto(url, wait_until="networkidle")
         html = await page.content()
         await browser.close()
         return html
@@ -86,7 +91,11 @@ async def fetch_and_parse_premier_league_data(url: str) -> str:
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            args=["--no-sandbox"],
+            proxy={
+                "server": "http://proxy-server.scraperapi.com:8001",
+                "username": 1e31ae426bd0ac1cadc5dcdfec001970,
+                "password": ""
+            },
         )
         page = await browser.new_page(
             user_agent=(
