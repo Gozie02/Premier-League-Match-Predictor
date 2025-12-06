@@ -51,11 +51,12 @@ async def fetch_html(url: str) -> str:
     logging.info(f"Fetching page: {url}")
 
     async with async_playwright() as p:
+        API_KEY = os.getenv("1e31ae426bd0ac1cadc5dcdfec001970")
         browser = await p.chromium.launch(
             headless=True,
             proxy={
                 "server": "http://proxy-server.scraperapi.com:8001",
-                "username": 1e31ae426bd0ac1cadc5dcdfec001970,
+                "username": API_KEY,
                 "password": ""
             }
         )
@@ -89,11 +90,12 @@ async def fetch_and_parse_premier_league_data(url: str) -> str:
     """
     logging.info("Launching Playwright browser for PL history page...")
     async with async_playwright() as p:
+        API_KEY = os.getenv("1e31ae426bd0ac1cadc5dcdfec001970")
         browser = await p.chromium.launch(
             headless=True,
             proxy={
                 "server": "http://proxy-server.scraperapi.com:8001",
-                "username": 1e31ae426bd0ac1cadc5dcdfec001970,
+                "username": API_KEY,
                 "password": ""
             },
         )
