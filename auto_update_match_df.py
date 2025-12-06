@@ -45,13 +45,25 @@ PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
 # -------------------------------------------------------------------
 async def fetch_html(url: str) -> str:
     """
-    Fetch raw HTML using Playwright.
-    On timeout, log and return whatever HTML we have instead of raising.
+    Fetch raw HTML using Playwright routed through ScraperAPI.
+    Uses browser-mode rendering and waits only for DOM content.
     """
     logging.info(f"Fetching page: {url}")
 
+    API_KEY = os.getenv("1e31ae426bd0ac1cadc5dcdfec001970")
+    if not API_KEY:
+        logging.error("SCRAPERAPI_KEY environment variable not set.")
+        return ""
+
+    scrape_url = (
+        "http://api.scraperapi.com/"
+        f"?api_key={API_KEY}"
+        "&render=true"
+        "&keep_headers=true"
+        f"&url={url}"
+    )
+
     async with async_playwright() as p:
-        API_KEY = os.getenv("1e31ae426bd0ac1cadc5dcdfec001970")
         browser = await p.chromium.launch(
             headless=True,
             proxy={
@@ -60,6 +72,7 @@ async def fetch_html(url: str) -> str:
                 "password": ""
             }
         )
+
         page = await browser.new_page(
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -69,36 +82,49 @@ async def fetch_html(url: str) -> str:
         )
 
         try:
-            # Use a shorter timeout and lighter wait_until mode
-            await page.goto(url, timeout=60000, wait_until="domcontentloaded")
-        except PlaywrightTimeoutError as e:
-            logging.warning(f"Timeout loading {url}: {e}. Using whatever HTML is available.")
+            await page.goto(scrape_url, timeout=60000)
+            await page.wait_for_selector("table", timeout=30000)
+        except PlaywrightTimeoutError:
+            logging.warning(f"Timeout loading {url}. Returning partial HTML.")
         except Exception as e:
             logging.error(f"Error navigating to {url}: {e}")
             await browser.close()
-            # Let caller decide what to do with None
             return ""
-            
-        resp = await page.goto(url, wait_until="networkidle")
+
         html = await page.content()
         await browser.close()
         return html
 
 async def fetch_and_parse_premier_league_data(url: str) -> str:
     """
-    Fetch HTML for the Premier League stats main page.
+    Fetch HTML for the Premier League stats main page using ScraperAPI browser mode.
     """
     logging.info("Launching Playwright browser for PL history page...")
+
+    API_KEY = os.getenv("1e31ae426bd0ac1cadc5dcdfec001970")
+    if not API_KEY:
+        logging.error("SCRAPERAPI_KEY environment variable not set.")
+        return ""
+
+    # ScraperAPI-rendered URL
+    scrape_url = (
+        "http://api.scraperapi.com/"
+        f"?api_key={API_KEY}"
+        "&render=true"
+        "&keep_headers=true"
+        f"&url={url}"
+    )
+
     async with async_playwright() as p:
-        API_KEY = os.getenv("1e31ae426bd0ac1cadc5dcdfec001970")
         browser = await p.chromium.launch(
             headless=True,
             proxy={
                 "server": "http://proxy-server.scraperapi.com:8001",
                 "username": API_KEY,
                 "password": ""
-            },
+            }
         )
+
         page = await browser.new_page(
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -107,19 +133,23 @@ async def fetch_and_parse_premier_league_data(url: str) -> str:
             )
         )
 
-        logging.info(f"Navigating to {url}...")
-
-        response = await page.goto(url, timeout=90000)
-        if not response or not response.ok:
-            logging.warning(f"Initial response not OK: {response}")
-
-        target_selector = "div.table_container, table.stats_table"
+        logging.info(f"Navigating to {url} via ScraperAPI...")
 
         try:
-            await page.wait_for_selector(target_selector, timeout=90000)
+            await page.goto(scrape_url, timeout=90000)
+        except Exception as e:
+            logging.error(f"Initial navigation failed: {e}")
+            await browser.close()
+            raise
+
+        # FBref main content always contains either of these:
+        target_selector = "table.stats_table, div.table_container"
+
+        try:
+            await page.wait_for_selector(target_selector, timeout=60000)
             logging.info("Target content loaded on PL history page.")
         except Exception as e:
-            logging.error(f"Selector didn't appear on PL history page: {e}")
+            logging.error(f"Selector didn't appear: {e}")
             await page.screenshot(path="cf_debug.png")
             await browser.close()
             raise
