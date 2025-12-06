@@ -50,7 +50,7 @@ async def fetch_html(url: str) -> str:
     """
     logging.info(f"Fetching page: {url}")
 
-    API_KEY = os.getenv("1e31ae426bd0ac1cadc5dcdfec001970")
+    API_KEY = os.getenv("SCRAPERAPI_KEY")
     if not API_KEY:
         logging.error("SCRAPERAPI_KEY environment variable not set.")
         return ""
@@ -101,7 +101,7 @@ async def fetch_and_parse_premier_league_data(url: str) -> str:
     """
     logging.info("Launching Playwright browser for PL history page...")
 
-    API_KEY = os.getenv("1e31ae426bd0ac1cadc5dcdfec001970")
+    API_KEY = os.getenv("SCRAPERAPI_KEY")
     if not API_KEY:
         logging.error("SCRAPERAPI_KEY environment variable not set.")
         return ""
