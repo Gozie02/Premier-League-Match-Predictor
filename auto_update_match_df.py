@@ -12,7 +12,9 @@ import os
 import random
 import asyncio
 from io import StringIO
-from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+
+import aiohttp
+from aiohttp import ClientError
 
 # -------------------------------------------------------------------
 # Basic config / constants
@@ -40,123 +42,63 @@ this_tuesday_str = this_tuesday.strftime("%Y-%m-%d")
 current_year = 2025  # Update this to the current Premier League season
 PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
 
+SCRAPERAPI_ENDPOINT = "http://api.scraperapi.com"
+
 # -------------------------------------------------------------------
-# Async HTTP helpers
+# Async HTTP helpers (ScraperAPI endpoint only)
 # -------------------------------------------------------------------
 async def fetch_html(url: str) -> str:
     """
-    Fetch raw HTML using Playwright routed through ScraperAPI.
-    Uses browser-mode rendering and waits only for DOM content.
+    Fetch rendered HTML for a URL using ScraperAPI endpoint (render=true).
+    This is the single entry point for all network fetches in this script.
     """
-    logging.info(f"Fetching page: {url}")
+    logging.info(f"Fetching HTML via ScraperAPI endpoint: {url}")
 
-    API_KEY = os.getenv("SCRAPERAPI_KEY")
-    if not API_KEY:
-        logging.error("SCRAPERAPI_KEY environment variable not set.")
-        return ""
+    api_key = os.getenv("SCRAPERAPI_KEY")
+    if not api_key:
+        msg = "SCRAPERAPI_KEY environment variable not set."
+        logging.error(msg)
+        raise RuntimeError(msg)
 
-    scrape_url = (
-        "http://api.scraperapi.com/"
-        f"?api_key={API_KEY}"
-        "&render=true"
-        "&keep_headers=true"
-        f"&url={url}"
-    )
+    params = {
+        "api_key": api_key,
+        "url": url,
+        "render": "true",  # ScraperAPI does the JS rendering for us
+        # add optional params here if you want: e.g. "country": "uk"
+    }
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            proxy={
-                "server": "http://proxy-server.scraperapi.com:8001",
-                "username": API_KEY,
-                "password": ""
-            }
-        )
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(SCRAPERAPI_ENDPOINT, params=params, timeout=90) as resp:
+                text = await resp.text()
+                if resp.status != 200:
+                    logging.error(
+                        f"ScraperAPI returned status {resp.status}. "
+                        f"Body (truncated): {text[:500]!r}"
+                    )
+                    raise RuntimeError(f"ScraperAPI request failed with status {resp.status}")
+                logging.info("Successfully fetched HTML via ScraperAPI endpoint.")
+                return text
+    except ClientError as e:
+        logging.error(f"HTTP error talking to ScraperAPI: {e}")
+        raise
+    except asyncio.TimeoutError:
+        logging.error("Timeout while talking to ScraperAPI.")
+        raise
+    except Exception as e:
+        logging.error(f"Unexpected error talking to ScraperAPI: {e}")
+        raise
 
-        page = await browser.new_page(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/127.0.0.0 Safari/537.36"
-            )
-        )
-
-        try:
-            await page.goto(scrape_url, timeout=60000)
-            await page.wait_for_selector("table", timeout=30000)
-        except PlaywrightTimeoutError:
-            logging.warning(f"Timeout loading {url}. Returning partial HTML.")
-        except Exception as e:
-            logging.error(f"Error navigating to {url}: {e}")
-            await browser.close()
-            return ""
-
-        html = await page.content()
-        await browser.close()
-        return html
 
 async def fetch_and_parse_premier_league_data(url: str) -> str:
     """
-    Fetch HTML for the Premier League stats main page using ScraperAPI browser mode.
+    Fetch HTML for the Premier League stats main page using ScraperAPI endpoint.
     """
-    logging.info("Launching Playwright browser for PL history page...")
-
-    API_KEY = os.getenv("SCRAPERAPI_KEY")
-    if not API_KEY:
-        logging.error("SCRAPERAPI_KEY environment variable not set.")
-        return ""
-
-    # ScraperAPI-rendered URL
-    scrape_url = (
-        "http://api.scraperapi.com/"
-        f"?api_key={API_KEY}"
-        "&render=true"
-        "&keep_headers=true"
-        f"&url={url}"
-    )
-
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            proxy={
-                "server": "http://proxy-server.scraperapi.com:8001",
-                "username": API_KEY,
-                "password": ""
-            }
-        )
-
-        page = await browser.new_page(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/127.0.0.0 Safari/537.36"
-            )
-        )
-
-        logging.info(f"Navigating to {url} via ScraperAPI...")
-
-        try:
-            await page.goto(scrape_url, timeout=90000)
-        except Exception as e:
-            logging.error(f"Initial navigation failed: {e}")
-            await browser.close()
-            raise
-
-        # FBref main content always contains either of these:
-        target_selector = "table.stats_table, div.table_container"
-
-        try:
-            await page.wait_for_selector(target_selector, timeout=60000)
-            logging.info("Target content loaded on PL history page.")
-        except Exception as e:
-            logging.error(f"Selector didn't appear: {e}")
-            await page.screenshot(path="cf_debug.png")
-            await browser.close()
-            raise
-
-        html = await page.content()
-        await browser.close()
-        return html
+    logging.info("Starting Premier League data fetch via ScraperAPI endpoint.")
+    html = await fetch_html(url)
+    if not html:
+        raise RuntimeError("Empty HTML for Premier League history page.")
+    return html
 
 
 async def get_team_urls() -> list[str]:
@@ -374,11 +316,11 @@ async def main():
             team_data["Team"] = team_name
             matches.append(team_data)
 
-            # Be nice to FBref
+            # Be nice to FBref (and ScraperAPI)
             await asyncio.sleep(random.uniform(3, 10))
 
         # -------------------------------------------------------------------
-        # POST-PROCESSING (this is your formatting / dedupe / date-window code)
+        # POST-PROCESSING (formatting / dedupe / date-window)
         # -------------------------------------------------------------------
         for df in matches:
             if "Date" in df.columns:
@@ -494,9 +436,9 @@ async def main():
         logging.info(f"[MERGE] combined_df before dropna: {combined_df.shape[0]}")
 
         combined_df = combined_df.drop(
-                            columns=["Attendance_home", "Attendance_away"],
-                            errors="ignore",  # prevents KeyError if columns are missing
-                        )
+            columns=["Attendance_home", "Attendance_away"],
+            errors="ignore",  # prevents KeyError if columns are missing
+        )
 
         # NaN diagnostics before the brute-force dropna
         na_per_col = combined_df.isna().sum().sort_values(ascending=False)
