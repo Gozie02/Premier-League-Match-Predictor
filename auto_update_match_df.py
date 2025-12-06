@@ -1,13 +1,10 @@
 import time
-import requests
-import cloudscraper
 from bs4 import BeautifulSoup
 import pandas as pd
 import schedule
 import numpy as np
 import logging
 import datetime
-import html5lib
 import os
 import random
 import asyncio
@@ -45,12 +42,12 @@ PL_History = "https://fbref.com/en/comps/9/Premier-League-Stats"
 SCRAPERAPI_ENDPOINT = "http://api.scraperapi.com"
 
 # -------------------------------------------------------------------
-# Async HTTP helpers (ScraperAPI endpoint only)
+# Async HTTP helpers (ScraperAPI endpoint only, shared session)
 # -------------------------------------------------------------------
-async def fetch_html(url: str) -> str:
+async def fetch_html(url: str, session: aiohttp.ClientSession) -> str:
     """
     Fetch rendered HTML for a URL using ScraperAPI endpoint (render=true).
-    This is the single entry point for all network fetches in this script.
+    Uses a shared aiohttp session for speed.
     """
     logging.info(f"Fetching HTML via ScraperAPI endpoint: {url}")
 
@@ -63,22 +60,21 @@ async def fetch_html(url: str) -> str:
     params = {
         "api_key": api_key,
         "url": url,
-        "render": "true",  # ScraperAPI does the JS rendering for us
-        # add optional params here if you want: e.g. "country": "uk"
+        "render": "true",  # ScraperAPI does JS rendering
+        # add optional params like "country": "uk" if needed
     }
 
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(SCRAPERAPI_ENDPOINT, params=params, timeout=90) as resp:
-                text = await resp.text()
-                if resp.status != 200:
-                    logging.error(
-                        f"ScraperAPI returned status {resp.status}. "
-                        f"Body (truncated): {text[:500]!r}"
-                    )
-                    raise RuntimeError(f"ScraperAPI request failed with status {resp.status}")
-                logging.info("Successfully fetched HTML via ScraperAPI endpoint.")
-                return text
+        async with session.get(SCRAPERAPI_ENDPOINT, params=params, timeout=90) as resp:
+            text = await resp.text()
+            if resp.status != 200:
+                logging.error(
+                    f"ScraperAPI returned status {resp.status}. "
+                    f"Body (truncated): {text[:500]!r}"
+                )
+                raise RuntimeError(f"ScraperAPI request failed with status {resp.status}")
+            logging.info("Successfully fetched HTML via ScraperAPI endpoint.")
+            return text
     except ClientError as e:
         logging.error(f"HTTP error talking to ScraperAPI: {e}")
         raise
@@ -90,22 +86,24 @@ async def fetch_html(url: str) -> str:
         raise
 
 
-async def fetch_and_parse_premier_league_data(url: str) -> str:
+async def fetch_and_parse_premier_league_data(
+    url: str, session: aiohttp.ClientSession
+) -> str:
     """
     Fetch HTML for the Premier League stats main page using ScraperAPI endpoint.
     """
     logging.info("Starting Premier League data fetch via ScraperAPI endpoint.")
-    html = await fetch_html(url)
+    html = await fetch_html(url, session)
     if not html:
         raise RuntimeError("Empty HTML for Premier League history page.")
     return html
 
 
-async def get_team_urls() -> list[str]:
+async def get_team_urls(session: aiohttp.ClientSession) -> list[str]:
     """
     Fetches the Premier League standings page and extracts each team's FBref URL.
     """
-    html_content = await fetch_and_parse_premier_league_data(PL_History)
+    html_content = await fetch_and_parse_premier_league_data(PL_History, session)
     soup = BeautifulSoup(html_content, "html.parser")
 
     standings_table = soup.select("table.stats_table")
@@ -122,7 +120,12 @@ async def get_team_urls() -> list[str]:
     return team_urls
 
 
-async def fetch_table(links, identifier: str, table_name: str):
+async def fetch_table(
+    links,
+    identifier: str,
+    table_name: str,
+    session: aiohttp.ClientSession,
+):
     """
     Given a list of links and an identifier, fetch that specific table by name.
     Returns a pandas DataFrame or None.
@@ -134,7 +137,7 @@ async def fetch_table(links, identifier: str, table_name: str):
     url = f"https://fbref.com{relevant_links[0]}"
 
     try:
-        html = await fetch_html(url)
+        html = await fetch_html(url, session)
     except Exception as e:
         logging.warning(f"Skipping table '{table_name}' for {url} due to fetch error: {e}")
         return None
@@ -205,18 +208,18 @@ def standardize_team_name(team_name: str) -> str:
 # -------------------------------------------------------------------
 # MAIN ASYNC WORKFLOW
 # -------------------------------------------------------------------
-async def main():
+async def _main_impl(session: aiohttp.ClientSession):
     logging.info("Starting Premier League data fetch")
 
     matches = []
 
     try:
-        team_urls = await get_team_urls()
+        team_urls = await get_team_urls(session)
 
         logging.info("Fetching team-level data for each Premier League club...")
 
         for team_url in team_urls:
-            html = await fetch_html(team_url)
+            html = await fetch_html(team_url, session)
 
             team_name = (
                 team_url.split("/")[-1]
@@ -235,13 +238,13 @@ async def main():
             soup = BeautifulSoup(html, "html.parser")
             links = [l.get("href") for l in soup.find_all("a")]
 
-            # Fetch related stat tables
-            shooting = await fetch_table(links, "all_comps/shooting/", "Shooting")
-            possession = await fetch_table(links, "all_comps/possession", "Possession")
-            passing = await fetch_table(links, "all_comps/passing", "Passing")
-            GCA = await fetch_table(links, "all_comps/gca", "GCA")
-            defense = await fetch_table(links, "all_comps/defense", "Defensive Actions")
-            misc = await fetch_table(links, "all_comps/misc", "Miscellaneous Stats")
+            # Fetch related stat tables (still sequential, but using shared session)
+            shooting = await fetch_table(links, "all_comps/shooting/", "Shooting", session)
+            possession = await fetch_table(links, "all_comps/possession", "Possession", session)
+            passing = await fetch_table(links, "all_comps/passing", "Passing", session)
+            GCA = await fetch_table(links, "all_comps/gca", "GCA", session)
+            defense = await fetch_table(links, "all_comps/defense", "Defensive Actions", session)
+            misc = await fetch_table(links, "all_comps/misc", "Miscellaneous Stats", session)
 
             try:
                 team_data = team_matches
@@ -316,8 +319,8 @@ async def main():
             team_data["Team"] = team_name
             matches.append(team_data)
 
-            # Be nice to FBref (and ScraperAPI)
-            await asyncio.sleep(random.uniform(3, 10))
+            # Previously 3–10 seconds; now a very small pause to be polite but not slow
+            await asyncio.sleep(random.uniform(0.3, 0.8))
 
         # -------------------------------------------------------------------
         # POST-PROCESSING (formatting / dedupe / date-window)
@@ -492,6 +495,12 @@ async def main():
         logging.error(f"Failed to fetch Premier League data: {e}")
 
     logging.info("Premier League data fetch completed")
+
+
+async def main():
+    # Create one shared session for the entire run (big speedup vs per-call sessions)
+    async with aiohttp.ClientSession() as session:
+        await _main_impl(session)
 
 
 # -------------------------------------------------------------------
